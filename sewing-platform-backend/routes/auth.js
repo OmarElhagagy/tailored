@@ -93,7 +93,7 @@ router.post('/login', [
 
     const {password, email, phone} = req.body;
 
-    if (!email && !password) {
+    if (!email && !phone) {
       return res.status(400).json({ message: 'Either email or phone is required' });
     }
 
