@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { check, validationResult } = require('express-validator');
-const user = require('../models/User');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 const sendEmail = require('../utils/sendEmail'); // will make the folder utils 
 
@@ -14,7 +14,7 @@ const sendEmail = require('../utils/sendEmail'); // will make the folder utils
 // access Public
 router.post('/register', [
   check('role', 'Role is required').not().isEmpty(),
-  check('Password', 'Password must at least be 8 characters').isLength({ min: 8 }),
+  check('password', 'Password must at least be 8 characters').isLength({ min: 8 }),
   check('email', 'Please include a valid email').optional().isEmail(),
   check('phone', 'Phone number is required')
 ], async(req, res) => {
@@ -28,7 +28,7 @@ router.post('/register', [
     try {
       // check if user exists
       if (email) {
-        const existingUser = await user.findOne({ email });
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
           return res.status(400).json({ errors: [{ message: 'User already exists'}] });
         }
@@ -43,7 +43,7 @@ router.post('/register', [
         return res.status(400).json({errors: [{ message: 'Business name field required'}]});
       }
 
-      const user = new user ({
+      const newUser = new User ({
         name,
         email,
         role,
@@ -53,13 +53,13 @@ router.post('/register', [
         password
       });
 
-      await user.save();
+      await User.save();
 
       // create and return JWT
       const payload = {
         user: {
-          id: user.id,
-          role: user.role
+          id: User.id,
+          role: User.role
         }
       };
 
