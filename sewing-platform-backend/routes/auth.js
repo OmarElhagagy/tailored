@@ -53,13 +53,13 @@ router.post('/register', [
         password
       });
 
-      await User.save();
+      await newUser.save();
 
       // create and return JWT
       const payload = {
         user: {
-          id: User.id,
-          role: User.role
+          id: newUser.id,
+          role: newUser.role
         }
       };
 
