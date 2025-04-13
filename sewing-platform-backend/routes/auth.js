@@ -78,3 +78,70 @@ router.post('/register', [
     }
   });
 
+// @route /api/auth/login
+// @desc  Authenticate user and get token
+// @access  Public
+router.post('/login', [
+  check('password', 'Password is required').exists(),
+  check('phone', 'phone number is required').optional(),
+  check('email', 'email is required').optional()
+], async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: [{ message: 'Either email or phone is required'}] });
+    }
+
+    const {password, email, phone} = req.body;
+
+    if (!email && !password) {
+      return res.status(400).json({ message: 'Either email or phone is required' });
+    }
+
+    try {
+      let user;
+      if (email) {
+        user = await User.findOne({ email });
+      } else {
+        user = await User.findOne({ phone });
+      }
+
+      if (!user) {
+        return res.status(400).json({ errors: [{ message: 'Invalid credentials' }] });
+      }
+
+      const isMatch = await user.comparePassword(password);
+
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+      }
+
+      // update last login
+      user.lastLogin = Date.now();
+      await user.save();
+
+      const payLoad  = {
+        user: {
+          id: user.id,
+          role: user.role
+        }
+      };
+
+      jwt.sign(
+        payLoad,
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' },
+        (error, token) => {
+          if (error) throw error;
+          res.json({
+            token,
+            role: user.role,
+            userId: user.id
+          })
+        }
+      );
+    } catch(error) {
+      console.error(err.message)
+      res.status(500).send('Server error');
+    }
+  });
+
