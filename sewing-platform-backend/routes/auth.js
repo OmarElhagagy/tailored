@@ -88,7 +88,7 @@ router.post('/login', [
 ], async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: [{ message: 'Either email or phone is required'}] });
+      return res.status(400).json({ errors: errors.array() });
     }
 
     const {password, email, phone} = req.body;
@@ -145,3 +145,15 @@ router.post('/login', [
     }
   });
 
+// @route /api/auth/forgot-password
+// @desc  Generate password reset token
+// access Public
+router.post('/forgot-password', [
+  check('email', 'Please include a valid email').isEmail()
+], async (req, res) => {
+    const errors = validationResult(req); 
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+  }
+)
