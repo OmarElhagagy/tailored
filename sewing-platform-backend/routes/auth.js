@@ -245,4 +245,19 @@ router.put('/reset-password/:token', [
 // @route GET /api/auth/verify
 // @desc  Verify user token
 // @access Private
+router.get('verify', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
 
+    if (!user) {
+      return res.status(404).json({ errors: [{ message: 'User not found' }] });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Server error');
+  }
+})
+
+module.exports = router;
