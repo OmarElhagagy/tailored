@@ -201,3 +201,44 @@ router.post('/forgot-password', [
     } 
   });
 
+// @route PUT /api/auth/reset-password/:token
+// @desc  reset password
+// @access public
+router.put('/reset-password/:token', [
+  check('password', 'Password must at least be 8 character').isLength({ min: 8 })
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // get hashed token
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex')
+
+    try {
+      const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpires: { $gt: Date.now() }
+      });
+
+      if (!user) {
+        return res.status(400).json({ errors: [{ message: 'Invalid or expired token' }] });
+      }
+
+      // set the new password
+      user.password = req.body.password;
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+
+      await user.save();
+
+      res.json({ success: true ,data: 'Password reset successful' });
+    } catch(error) {
+      console.error(error.message);
+      res.status(500).send('Server Error');
+    }
+  });
+
