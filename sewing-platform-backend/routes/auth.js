@@ -188,6 +188,8 @@ router.post('/forgot-password', [
           subject: 'Password reset',
           message
         });
+
+        res.json({ success: true, data: 'Password reset email sent' });
       } catch (error) {
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
@@ -245,7 +247,7 @@ router.put('/reset-password/:token', [
 // @route GET /api/auth/verify
 // @desc  Verify user token
 // @access Private
-router.get('verify', auth, async (req, res) => {
+router.get('/verify', auth(), async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
 
