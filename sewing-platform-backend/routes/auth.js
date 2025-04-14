@@ -178,7 +178,7 @@ router.post('/forgot-password', [
       await user.save();
 
       // create reset URL
-      const resetUrl = `${req.protocol}://{req.get('host')}/reset-password/${resetToken}`;
+      const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
 
       const message = `you requested a password reset. Please click on the link to reset your password: \n\n ${resetUrl}`;
 
