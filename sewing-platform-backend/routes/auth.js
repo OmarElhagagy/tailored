@@ -155,5 +155,49 @@ router.post('/forgot-password', [
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() })
     }
-  }
-)
+
+    const { email } = req.body;
+
+    try {
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        return res.status(404).json({ errors: [{ message: 'User not found' }] });
+      }
+
+      // generate reset token
+      const resetToken = crypto.randomBytes(20).toString('hex');
+      user.resetPasswordToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex')
+
+      //token expires in 1 hour
+      user.resetPasswordExpires = Date.now() + 3600000;
+
+      await user.save();
+
+      // create reset URL
+      const resetUrl = `${req.protocol}://{req.get('host')}/reset-password/${resetToken}`;
+
+      const message = `you requested a password reset. Please click on the link to reset your password: \n\n ${resetUrl}`;
+
+      try {
+        await sendEmail ({
+          email: user.email,
+          subject: 'Password reset',
+          message
+        });
+      } catch (error) {
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        return res.status(500).json({ errors: [{message: 'Email could not be sent'}] });
+      }
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send('Server Error');
+    } 
+  });
+
