@@ -242,3 +242,7 @@ router.put('/reset-password/:token', [
     }
   });
 
+// @route GET /api/auth/verify
+// @desc  Verify user token
+// @access Private
+
