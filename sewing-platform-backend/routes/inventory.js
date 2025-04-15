@@ -44,4 +44,9 @@ router.get('/:id', auth, async (req, res) => {
     }
     res.status(500).send('Server error');
   }
-})
+});
+
+// @route POST /api/inventory
+// @desc  Create new inventory item
+// @access private
+
