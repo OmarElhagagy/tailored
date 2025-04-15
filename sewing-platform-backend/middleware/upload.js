@@ -17,7 +17,7 @@ function fileFilter(req, file, cb) {
 	if (file.mimetype.startsWith('image/')) {
 		cb(null, true);
 	} else {
-		cb(new Error('Invalid file type, only images are allowed'), false);
+		cb(new Error('Invalid file type, only jpeg, jpg, png, gif image formats are allowed'), false);
 	}
 }
 
