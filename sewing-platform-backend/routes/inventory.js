@@ -67,7 +67,7 @@ router.post('/', [
     try {
       const { name, stock, threshold, description, tags, unit, sku, cost } = req.body
 
-      // handle tags (convert comma seperated strinf to array and trim it) so we can store it in mongodb
+      // handle tags (convert comma seperated string to array and trim it) so we can store it in mongodb
       const parsedTags = tags ? tags.split(',').map(tag => tag.trim()) : [];
 
       const newItem = new InventoryItem ({
@@ -93,5 +93,8 @@ router.post('/', [
       console.error(error.message);
       res.status(500).send('Server error');
     }
-  }
-)
+  });
+
+// @route PUT /api/inventory/:id
+// @desc  update inventory item
+// @access Private (Owner only)
