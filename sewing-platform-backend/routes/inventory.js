@@ -157,3 +157,29 @@ router.put('/:id', [
     }
   });
 
+// @route DELETE /api/inventory/:id
+// @desc  delete inventory item
+// @access Private (Owner only)
+router.delete('/:id', auth, checkRole('seller'), async(req, res) => {
+  try {
+    const item = await InventoryItem.findById(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ errors: [{ message: 'Inventory item not found' }] });
+    }
+
+    if (req.user.role !== 'admin' && item.sellerId.toString() !== req.user.id) {
+      return res.status(403).json({ errors: [{ message: 'Not authorized' }] });
+    }
+
+    await item.remove();
+    res.json({ message: 'Inventory item removed' });
+  } catch(error) {
+    console.error(error.message);
+    if (error.kind === 'ObjectId') {
+      return res.status(404).json({ errors: [{ message: 'Inventory item not found' }] })
+    }
+    res.status(500).send('Server error');
+  }
+});
+
