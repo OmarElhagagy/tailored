@@ -219,11 +219,11 @@ router.put('/:id/stock',
         return res.status(400).json({ errors: [{ message: error.message }] });
       }
     } catch(error) {
+      console.error(error.message);
       if (error.kind === 'ObjectId') {
         return res.status(404).json({ errors: [{ message: 'Inventory item not found' }] })
       }
       res.status(500).send('Server error');
     }
-  }
-  
-)
+});
+
