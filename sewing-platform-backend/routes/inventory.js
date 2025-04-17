@@ -183,3 +183,47 @@ router.delete('/:id', auth, checkRole('seller'), async(req, res) => {
   }
 });
 
+// @route PUT /api/inventory/:id/stock
+// @desc  update inventory stock level
+// @access Private (Owner only)
+router.put('/:id/stock',
+  [
+    auth,
+    checkRole('seller'),
+    [
+      check('quantity', 'quantity adjustment is required').isNumeric()
+    ]
+  ], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const item = InventoryItem.findById(req.params.id);
+
+      if (!item) {
+        return res.status(404).json({ errors: [{ message: 'Inventory item not found' }] });
+      }
+
+      if (req.user.role !== 'admin' && item.sellerId.toString() !== req.user.id) {
+        return res.status(403).json({ errors: [{ message: 'Not authorized' }] });
+      }
+
+      const quantity = parseInt(req.body.quantity);
+      
+      try {
+        await item.updateStock(quantity);
+        res.json(item);
+      } catch(error) {
+        return res.status(400).json({ errors: [{ message: error.message }] });
+      }
+    } catch(error) {
+      if (error.kind === 'ObjectId') {
+        return res.status(404).json({ errors: [{ message: 'Inventory item not found' }] })
+      }
+      res.status(500).send('Server error');
+    }
+  }
+  
+)
