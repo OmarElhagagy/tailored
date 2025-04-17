@@ -127,6 +127,27 @@ router.put('/:id', [
 
       // update fields
       const { name, description, stock, threshold, unit, sku, cost, tags, active } = req.body
+
+      if (name) item.name = name;
+      if (description) item.description = description;
+      if (stock !== undefined) item.stock = Number(stock);
+      if (threshold) item.threshold = Number(threshold);
+      if (unit) item.unit = unit;
+      if (sku) item.sku = sku;
+      if (cost) item.cost = Number(cost);
+      if (active !== undefined) item.active = active === 'true';
+
+      if (tags) {
+        item.tags = tags.split(',').map(tag => tag.trim());
+      }
+
+      // add photo path if uploaded
+      if (req.file) {
+        item.photo = req.file.path;
+      }
+
+      const updatedItem = await item.save();
+      res.json(updatedItem);
     } catch(error) {
     }
   }
