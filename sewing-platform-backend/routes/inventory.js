@@ -98,3 +98,36 @@ router.post('/', [
 // @route PUT /api/inventory/:id
 // @desc  update inventory item
 // @access Private (Owner only)
+router.put('/:id', [
+  auth,
+  checkRole('seller'),
+  uploadMiddleware.single('photo'),
+  [
+    check('name', 'Name field is required').not().isEmpty(),
+    check('stock', 'Stock must be a number').optional().isNumeric(),
+    check('threshold', 'treshold must be a number').optional().isNumeric()
+  ]
+], async(req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const item = await InventoryItem.findbyId(req.params.id);
+
+      if (!item) {
+        return res.status(404).json({ errors: [{ message: 'Inventory item not found' }] });
+      }
+
+      // check if user owns the inventory item
+      if (item.sellerId.toString() !== req.user.id && req.user.role !== 'admin') {
+        return res.status(403).json({ errors: [{ message: 'Not authorized' }] });
+      }
+
+      // update fields
+      const { name, description, stock, threshold, unit, sku, cost, tags, active } = req.body
+    } catch(error) {
+    }
+  }
+)
