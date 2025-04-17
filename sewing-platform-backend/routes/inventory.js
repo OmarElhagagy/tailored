@@ -227,3 +227,21 @@ router.put('/:id/stock',
     }
 });
 
+// @route GET /api/inventory/low-stock
+// @desc  Get low stock inventory items
+// @access Private(seller only)
+router.get('/low-stock', auth, checkRole('seller'), async(req, res) => {
+  try {
+    const items = await InventoryItem.find({
+      sellerId: req.user.id,
+      $expr: { $lte: ["$stock", "$threshold"] }
+    }).sort({ stock: 1 });
+
+    res.json(items);
+  } catch(error) {
+    console.error(error.message);
+    res.status(500).send('Server error');
+  }
+});
+
+module.exports = router;
