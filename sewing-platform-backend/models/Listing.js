@@ -85,7 +85,7 @@ const ListingSchema = new Schema({
     unit: {
       type: String,
       enum: ['kg', 'g', 'lb', 'oz'],
-      default: 'g'
+      default: 'kg'
     }
   },
   status: {
