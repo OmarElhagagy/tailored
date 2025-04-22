@@ -10,51 +10,65 @@ const NotificationSchema = new Schema({
   },
   type: {
     type: String,
-    enum: ['order', 'message', 'system', 'inventory', 'payment', 'review'],
-    required: [true, 'Notification type is required'],
-    index: true
+    enum: [
+      'message', 
+      'order_update', 
+      'order_rated', 
+      'order_shipped', 
+      'order_tracking_update', 
+      'order_delivered', 
+      'payment_received', 
+      'payment_failed',
+      'wishlist_price_change',
+      'low_stock',
+      'out_of_stock',
+      'inventory_update',
+      'inventory_reorder',
+      'saved_search_results',
+      'sales_milestone',
+      'message_unread'
+    ],
+    required: [true, 'Notification type is required']
   },
-  content: {
+  title: {
     type: String,
-    required: [true, 'Notification content is required'],
+    required: [true, 'Notification title is required'],
     trim: true
   },
-  relatedId: {
-    type: Schema.Types.ObjectId,
-    refPath: 'relatedModel',
-    index: true
-  },
-  relatedModel: {
+  message: {
     type: String,
-    enum: ['Order', 'Message', 'User', 'Listing', 'InventoryItem'],
-    required: function() {
-      return this.relatedId != null;
-    }
+    required: [true, 'Notification message is required'],
+    trim: true
   },
   read: {
     type: Boolean,
-    default: false,
-    index: true
+    default: false
   },
-  readAt: {
-    type: Date
+  relatedId: {
+    type: Schema.Types.ObjectId,
+    refPath: 'relatedType'
   },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-    index: true
+  relatedType: {
+    type: String,
+    enum: ['Order', 'Listing', 'Message', 'User', 'BusinessCredential', null],
+    default: null
+  },
+  actionLink: {
+    type: String,
+    trim: true
+  },
+  actionText: {
+    type: String,
+    trim: true
   },
   priority: {
     type: String,
     enum: ['low', 'normal', 'high', 'urgent'],
     default: 'normal'
   },
-  action: {
-    type: {
-      type: String,
-      enum: ['view', 'respond', 'approve', 'reject', 'other']
-    },
-    url: String
+  data: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   },
   expiresAt: {
     type: Date
@@ -63,44 +77,38 @@ const NotificationSchema = new Schema({
   timestamps: true
 });
 
-// Compound index for unread notifications by user and type
-NotificationSchema.index({ userId: 1, read: 1, type: 1, timestamp: -1 });
+// Compound index for efficient retrieval
+NotificationSchema.index({ userId: 1, read: 1, createdAt: -1 });
+
+// Index for finding related notifications
+NotificationSchema.index({ relatedId: 1, relatedType: 1 });
 
 // Method to mark notification as read
 NotificationSchema.methods.markAsRead = function() {
   this.read = true;
-  this.readAt = new Date();
   return this.save();
 };
 
-// Static method to get unread notifications count for a user
+// Static method to mark all notifications as read for a user
+NotificationSchema.statics.markAllAsRead = function(userId) {
+  return this.updateMany(
+    { userId, read: false },
+    { read: true }
+  );
+};
+
+// Static method to get unread count
 NotificationSchema.statics.getUnreadCount = function(userId) {
-  return this.countDocuments({ userId: userId, read: false });
+  return this.countDocuments({ userId, read: false });
 };
 
-// Static method to get unread notifications by type
-NotificationSchema.statics.getUnreadByType = function(userId, type) {
-  return this.find({ userId: userId, type: type, read: false })
-    .sort({ timestamp: -1 });
-};
-
-// Mark all notifications of a type as read
-NotificationSchema.statics.markAllAsRead = function(userId, type = null) {
-  const query = { userId: userId, read: false };
-  if (type) {
-    query.type = type;
+// Pre-save hook to set default expiry date if not set
+NotificationSchema.pre('save', function(next) {
+  if (!this.expiresAt) {
+    // Default to 30 days expiry
+    this.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   }
-  
-  return this.updateMany(query, {
-    $set: { read: true, readAt: new Date() }
-  });
-};
-
-// Remove expired notifications
-NotificationSchema.statics.removeExpired = function() {
-  return this.deleteMany({
-    expiresAt: { $lt: new Date() }
-  });
-};
+  next();
+});
 
 module.exports = mongoose.model('Notification', NotificationSchema);

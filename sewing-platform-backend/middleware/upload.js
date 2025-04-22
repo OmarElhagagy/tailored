@@ -1,18 +1,10 @@
 const multer = require('multer');
 const path = require('path');
 
-// configure storage location and file name
-const storage = multer.diskStorage({
-	destination: (req, file, cb) => {
-		cb(null, '../uploads/');
-	},
-	filename: (req, file, cb) => {
-		const ext = path.extname(file.originalname).toLowerCase();
-		cb(null, `${file.fieldname}-${Date.now()}${ext}`);
-	}
-});
+// Configure storage - using memory storage for better processing with sharp
+const storage = multer.memoryStorage();
 
-// file filter: only images
+// File filter: only images
 function fileFilter(req, file, cb) {
 	if (file.mimetype.startsWith('image/')) {
 		cb(null, true);
@@ -21,11 +13,14 @@ function fileFilter(req, file, cb) {
 	}
 }
 
-// create multer instance
-const upload = multer ({
+// Create multer instance
+const upload = multer({
 	storage,
 	fileFilter,
-	limits: {fileSize: 5 * 1024 * 1024} // 5MB max
+	limits: { 
+		fileSize: 10 * 1024 * 1024,  // 10MB max
+		files: 10  // Maximum 10 files per request
+	}
 });
 
 module.exports = upload;
