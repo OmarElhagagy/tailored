@@ -204,7 +204,7 @@ class ApiClient {
   }
 
   /**
-   * GET request for paginated data
+   * GET request with pagination
    */
   public async getPaginated<T>(url: string, params?: Record<string, any>): Promise<PaginatedResponse<T>> {
     const response = await this.request<PaginatedResponse<T>>({
@@ -212,7 +212,7 @@ class ApiClient {
       url,
       params
     });
-    return response.data;
+    return response;
   }
 
   /**
@@ -256,6 +256,20 @@ class ApiClient {
       method: 'DELETE',
       url,
       params
+    });
+  }
+
+  /**
+   * Upload FormData with type safety
+   */
+  public async uploadFormData<T>(url: string, formData: FormData): Promise<ApiResponse<T>> {
+    return this.request<T>({
+      method: 'POST',
+      url,
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     });
   }
 }
