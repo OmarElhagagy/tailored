@@ -5,6 +5,8 @@ import ResponsiveNavbar from "../components/ResponsiveNavbar";
 import { cookies } from "next/headers";
 import jwt_decode from "jwt-decode";
 import AnalyticsProvider from "../src/components/AnalyticsProvider";
+import AuthProvider from "../src/contexts/AuthContext";
+import ClientAuthWrapper from "../src/components/ClientAuthWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +29,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Server-side authentication check
+  // Server-side authentication check for initial page load
   const cookieStore = cookies();
   const authToken = cookieStore.get('authToken')?.value;
 
@@ -52,25 +54,31 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
       >
         <AnalyticsProvider>
-          <div className="flex flex-col min-h-screen">
-            <header>
-              <ResponsiveNavbar 
-                isLoggedIn={isLoggedIn} 
-                userRole={userRole} 
-                userName={userName} 
-              />
-            </header>
-            <main className="flex-grow">
-              {children}
-            </main>
-            <footer className="bg-gray-100 dark:bg-gray-900 py-6 px-4">
-              <div className="max-w-7xl mx-auto">
-                <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-                  © {new Date().getFullYear()} Tailors. All rights reserved.
+          <AuthProvider>
+            <div className="flex flex-col min-h-screen">
+              <ClientAuthWrapper>
+                {(auth) => (
+                  <header>
+                    <ResponsiveNavbar 
+                      isLoggedIn={auth.isAuthenticated} 
+                      userRole={auth.user?.role || ''} 
+                      userName={auth.user ? `${auth.user.firstName} ${auth.user.lastName}` : ''} 
+                    />
+                  </header>
+                )}
+              </ClientAuthWrapper>
+              <main className="flex-grow">
+                {children}
+              </main>
+              <footer className="bg-gray-100 dark:bg-gray-900 py-6 px-4">
+                <div className="max-w-7xl mx-auto">
+                  <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                    © {new Date().getFullYear()} Tailors. All rights reserved.
+                  </div>
                 </div>
-              </div>
-            </footer>
-          </div>
+              </footer>
+            </div>
+          </AuthProvider>
         </AnalyticsProvider>
       </body>
     </html>

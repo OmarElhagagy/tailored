@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import useResponsive from '../src/hooks/useResponsive';
+import { useAuth } from '../src/contexts/AuthContext';
 
 interface NavLink {
   label: string;
@@ -24,6 +25,7 @@ const ResponsiveNavbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isMobile } = useResponsive();
   const router = useRouter();
+  const { logout } = useAuth();
 
   // Close menu when route changes or screen resizes from mobile to desktop
   useEffect(() => {
@@ -51,16 +53,13 @@ const ResponsiveNavbar: React.FC<NavbarProps> = ({
     return true;
   });
 
-  const handleLogout = () => {
-    // Clear auth token from local storage and cookies
-    localStorage.removeItem('authToken');
-    document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    
-    // Redirect to home
-    router.push('/');
-    
-    // Reload to clear any authenticated state
-    window.location.reload();
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Router navigation is handled inside the logout function
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
