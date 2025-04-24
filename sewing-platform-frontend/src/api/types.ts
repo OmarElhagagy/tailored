@@ -13,7 +13,8 @@ export interface ApiResponse<T> {
 export interface ApiError {
   message: string;
   code?: string;
-  errors?: Record<string, string[]>;
+  status?: number;
+  errors?: Array<{ field?: string; message: string }>;
 }
 
 // Pagination metadata
@@ -29,20 +30,33 @@ export interface PaginationMeta {
 // Paginated response
 export interface PaginatedResponse<T> {
   items: T[];
-  meta: PaginationMeta;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 /**
  * User and Authentication types
  */
 export interface User {
-  id: string;
-  name: string;
+  _id: string;
   email: string;
-  role: 'admin' | 'tailor' | 'customer';
+  name: string;
+  phone: string;
+  role: 'buyer' | 'seller' | 'admin';
+  businessName?: string;
+  businessAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  credentialVerificationStatus?: 'not_submitted' | 'pending' | 'verified' | 'rejected';
   profileImage?: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface LoginRequest {
@@ -114,17 +128,22 @@ export interface InventoryFilters {
  * Order types
  */
 export interface Order {
-  id: string;
-  customerId: string;
-  customerName: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  totalAmount: number;
-  paymentStatus: 'unpaid' | 'paid' | 'refunded';
-  items: OrderItem[];
+  _id: string;
+  orderNumber: string;
+  buyerId: string;
+  sellerId: string;
+  listingId: string;
+  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'refunded';
+  quantity: number;
+  totalPrice: number;
+  paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
+  paymentMethod: string;
+  deliveryMethod: string;
+  deliveryFee: number;
+  customizations?: Record<string, string>;
   notes?: string;
   createdAt: string;
   updatedAt: string;
-  dueDate?: string;
 }
 
 export interface OrderItem {
@@ -161,4 +180,86 @@ export interface OrderFilters {
   sortOrder?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;
+}
+
+export interface Review {
+  _id: string;
+  orderId: string;
+  buyerId: string;
+  sellerId: string;
+  listingId: string;
+  rating: number;
+  comment: string;
+  photos?: string[];
+  sellerReply?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  name: string;
+  phone: string;
+  role: 'buyer' | 'seller';
+  businessName?: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface Listing {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  subCategory?: string;
+  sellerId: string;
+  photos: string[];
+  mainPhoto: string;
+  tags: string[];
+  customizable: boolean;
+  customizationOptions?: Array<{
+    name: string;
+    choices: string[];
+  }>;
+  estimatedMakingTime?: number;
+  status: 'active' | 'sold' | 'inactive' | 'draft';
+  rating: {
+    average: number;
+    count: number;
+  };
+  deliveryOptions: Array<{
+    method: 'pickup' | 'standard' | 'express' | 'overnight';
+    fee: number;
+    estimatedDays?: {
+      min: number;
+      max: number;
+    };
+    description?: string;
+  }>;
+}
+
+export interface ListingFilters {
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  rating?: number;
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface AxiosConfig extends AxiosRequestConfig {
+  headers?: Record<string, string>;
 } 
