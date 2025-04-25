@@ -818,4 +818,103 @@ router.get('/verify', auth(), async (req, res) => {
   }
 })
 
+// @route POST /api/auth/refresh-token
+// @desc  Refresh JWT token
+// @access Private
+router.post('/refresh-token', async (req, res) => {
+  try {
+    // Get token from cookies
+    let token;
+    if (req.cookies && req.cookies.authToken) {
+      token = req.cookies.authToken;
+    }
+    
+    // If no token found, try to get from authorization header
+    if (!token) {
+      const authHeader = req.header('Authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1]; // extract token after "Bearer"
+      }
+    }
+    
+    // If still no token found, deny access
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        errors: [{ message: 'No token provided, authentication required' }]
+      });
+    }
+    
+    // Verify token (even if expired)
+    const decoded = jwt.decode(token);
+    if (!decoded || !decoded.user || !decoded.user.id) {
+      return res.status(401).json({
+        success: false,
+        errors: [{ message: 'Invalid token format' }]
+      });
+    }
+    
+    // Get user from DB with ID from token
+    const user = await User.findById(decoded.user.id);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        errors: [{ message: 'User not found' }]
+      });
+    }
+    
+    // Create new payload with same user info
+    const payload = {
+      user: {
+        id: user.id,
+        role: user.role,
+        verified: user.phoneVerified
+      }
+    };
+    
+    // Generate new token
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '12h' },
+      (err, newToken) => {
+        if (err) throw err;
+        
+        // Set secure cookie with the token
+        res.cookie('authToken', newToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 12 * 60 * 60 * 1000 // 12 hours
+        });
+        
+        res.json({
+          token: newToken,
+          success: true,
+          message: 'Token refreshed successfully'
+        });
+      }
+    );
+  } catch (error) {
+    console.error('Refresh token error:', error.message);
+    res.status(500).json({
+      success: false,
+      errors: [{ message: 'Server error during token refresh' }]
+    });
+  }
+});
+
+// @route POST /api/auth/logout
+// @desc  Logout user by clearing cookie
+// @access Public
+router.post('/logout', (req, res) => {
+  // Clear the auth cookie
+  res.clearCookie('authToken');
+  
+  res.json({
+    success: true,
+    message: 'Logged out successfully'
+  });
+});
+
 module.exports = router;
