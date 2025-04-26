@@ -1,0 +1,19 @@
+/* Additional custom styles */
+body {
+  background-color: #f8f9fa;
+  padding: 20px;
+}
+
+.card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.card-header {
+  font-weight: 500;
+}
+
+/* Remove Bootstrap button focus outline */
+.btn:focus {
+  box-shadow: none;
+} 

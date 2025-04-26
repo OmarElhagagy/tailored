@@ -18,14 +18,16 @@ The project consists of three main components:
 
 ## Getting Started
 
-### Option 1: Using a Single Command (Recommended)
+### Option 1: Using the Setup Script (Recommended)
 
-1. Install project dependencies:
+We've prepared a setup script that will install all dependencies and prepare the environment for you:
+
+1. Run the setup script:
    ```bash
-   npm install
+   node setup.js
    ```
 
-2. Start all components (backend, frontend, and admin dashboard) with a single command:
+2. After setup completes, start all components with:
    ```bash
    npm start
    ```
@@ -35,7 +37,24 @@ The project consists of three main components:
    - Admin Dashboard: http://localhost:3001
    - Backend API: http://localhost:5000
 
-### Option 2: Using the Provided Scripts
+### Option 2: Manual Installation
+
+1. Install root project dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Install dependencies for each component:
+   ```bash
+   npm run install:all
+   ```
+
+3. Start all components:
+   ```bash
+   npm start
+   ```
+
+### Option 3: Using the Provided Scripts
 
 #### Windows
 
@@ -57,7 +76,7 @@ The project consists of three main components:
    ./run-local.sh
    ```
 
-### Option 3: Manual Setup
+### Option 4: Manual Setup of Each Component
 
 #### Backend Setup
 
@@ -137,6 +156,15 @@ The application supports three main user roles:
 - Backend is built with Express.js and MongoDB
 - Admin dashboard is built with Next.js
 - All components use TypeScript for better type safety
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Make sure MongoDB is installed and running
+2. Check that all dependencies are installed correctly
+3. Check the terminal output for specific error messages
+4. For dependency issues, try deleting the node_modules folder and running `npm install` again
 
 ## License
 

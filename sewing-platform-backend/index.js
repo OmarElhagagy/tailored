@@ -70,6 +70,19 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.error('MongoDB connection error', err);
   // Track database connection error
   appInsights.trackException(err, { context: 'Database Connection' });
+  
+  // Try connecting to local MongoDB as fallback
+  console.log('Attempting to connect to local MongoDB instance...');
+  mongoose.connect('mongodb://localhost:27017/tailors-platform', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }).then(() => {
+    console.log('Connected to local MongoDB');
+    appInsights.trackEvent('DatabaseConnected', { database: 'Local MongoDB' });
+  }).catch(localErr => {
+    console.error('Local MongoDB connection also failed:', localErr);
+    appInsights.trackException(localErr, { context: 'Local Database Connection' });
+  });
 });
 
 //Mount route files

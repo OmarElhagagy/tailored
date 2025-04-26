@@ -43,9 +43,12 @@ interface AuthContextType {
   updateUser: (userData: Partial<User>) => void;
 }
 
+console.log('AuthContext initializing');
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  console.log('AuthProvider rendering');
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -53,9 +56,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('AuthProvider useEffect running');
     const loadUser = async () => {
       if (token) {
         try {
+          console.log('Attempting to load user with token');
           const res = await axios.get(`${API_URL}/api/auth/me`, {
             headers: {
               Authorization: `Bearer ${token}`
@@ -63,9 +68,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
 
           if (res.data.success) {
+            console.log('User loaded successfully');
             setUser(res.data.data);
             setIsAuthenticated(true);
           } else {
+            console.log('Failed to load user, clearing token');
             localStorage.removeItem('token');
             setToken(null);
             setIsAuthenticated(false);
@@ -76,11 +83,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setToken(null);
           setIsAuthenticated(false);
         }
+      } else {
+        console.log('No token found, skipping user load');
       }
       setLoading(false);
     };
 
-    loadUser();
+    loadUser().catch(err => {
+      console.error('Unexpected error in loadUser:', err);
+      setLoading(false);
+    });
   }, [token]);
 
   const login = async (email: string, password: string) => {

@@ -5,10 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "npm-run-all --parallel start:*",
-    "start:backend": "cd sewing-platform-backend && npm install && npm start",
-    "start:client": "cd Tailors-Client && npm install && npm run dev",
-    "start:admin": "cd app && npm install && npm run dev",
-    "postinstall": "npm install --prefix sewing-platform-backend && npm install --prefix Tailors-Client && npm install --prefix app"
+    "start:backend": "cd sewing-platform-backend && npm start",
+    "start:client": "cd Tailors-Client && npm run dev",
+    "start:admin": "cd app && npm run dev",
+    "install:all": "npm install && npm install --prefix sewing-platform-backend && npm install --prefix Tailors-Client && npm install --prefix app",
+    "setup": "node setup.js"
   },
   "keywords": [
     "tailors",

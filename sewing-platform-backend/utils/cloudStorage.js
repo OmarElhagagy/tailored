@@ -1,144 +1,102 @@
-const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob');
-const { DefaultAzureCredential } = require('@azure/identity');
-const path = require('path');
-const crypto = require('crypto');
-
 /**
- * Azure Blob Storage utility for handling file uploads
+ * Cloud Storage Utility (Simplified for local development)
+ * 
+ * This is a placeholder implementation for local development.
+ * In production, this would use Azure Blob Storage or another cloud storage service.
  */
-class CloudStorage {
-  constructor() {
-    this.accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
-    this.containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || 'sewing-platform-uploads';
-    this.connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
-    this.cdnEndpoint = process.env.AZURE_STORAGE_CDN_ENDPOINT;
+
+const fs = require('fs');
+const path = require('path');
+
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, '../uploads');
+
+const init = async () => {
+  try {
+    // Create uploads directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    console.log('Local storage initialized');
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize local storage:', error);
+    return false;
+  }
+};
+
+// Upload a file to local storage
+const uploadFile = async (fileBuffer, fileName, contentType) => {
+  try {
+    const filePath = path.join(uploadDir, fileName);
+    fs.writeFileSync(filePath, fileBuffer);
     
-    // Initialize the Blob Service Client
-    this.blobServiceClient = BlobServiceClient.fromConnectionString(this.connectionString);
-    this.containerClient = this.blobServiceClient.getContainerClient(this.containerName);
+    return {
+      url: `/uploads/${fileName}`,
+      name: fileName,
+      contentType,
+      size: fileBuffer.length
+    };
+  } catch (error) {
+    console.error('Error uploading file to local storage:', error);
+    throw error;
   }
+};
 
-  /**
-   * Initialize the storage container if it doesn't exist
-   */
-  async init() {
-    try {
-      await this.containerClient.createIfNotExists({
-        access: 'blob' // Public read access for blobs only
-      });
-      console.log(`Container "${this.containerName}" is ready.`);
-    } catch (error) {
-      console.error('Error initializing Azure Blob Storage:', error);
-      throw error;
+// Get a file from local storage
+const getFile = async (fileName) => {
+  try {
+    const filePath = path.join(uploadDir, fileName);
+    if (!fs.existsSync(filePath)) {
+      return null;
     }
-  }
-
-  /**
-   * Generate a unique filename for uploads
-   * @param {string} originalFilename - Original file name
-   * @returns {string} - Unique filename
-   */
-  generateUniqueFilename(originalFilename) {
-    const timestamp = Date.now();
-    const randomString = crypto.randomBytes(8).toString('hex');
-    const extension = path.extname(originalFilename);
-    const basename = path.basename(originalFilename, extension);
     
-    return `${basename}-${timestamp}-${randomString}${extension}`;
+    const fileBuffer = fs.readFileSync(filePath);
+    return {
+      content: fileBuffer,
+      name: fileName,
+      contentType: getMimeType(fileName),
+      size: fileBuffer.length
+    };
+  } catch (error) {
+    console.error('Error retrieving file from local storage:', error);
+    throw error;
   }
+};
 
-  /**
-   * Upload file to Azure Blob Storage
-   * @param {Buffer} fileBuffer - File buffer
-   * @param {string} originalFilename - Original file name
-   * @param {string} contentType - File MIME type
-   * @param {Object} options - Additional options like folder path
-   * @returns {Promise<Object>} - Upload result with URL
-   */
-  async uploadFile(fileBuffer, originalFilename, contentType, options = {}) {
-    try {
-      const uniqueFilename = this.generateUniqueFilename(originalFilename);
-      const folderPath = options.folder || '';
-      const blobPath = folderPath ? `${folderPath}/${uniqueFilename}` : uniqueFilename;
-      
-      // Get a block blob client
-      const blockBlobClient = this.containerClient.getBlockBlobClient(blobPath);
-      
-      // Upload the file
-      await blockBlobClient.upload(fileBuffer, fileBuffer.length, {
-        blobHTTPHeaders: {
-          blobContentType: contentType
-        }
-      });
-      
-      // Generate URLs
-      const blobUrl = blockBlobClient.url;
-      const cdnUrl = this.cdnEndpoint 
-        ? `https://${this.cdnEndpoint}/${blobPath}`
-        : blobUrl;
-      
-      return {
-        filename: uniqueFilename,
-        blobPath: blobPath,
-        url: cdnUrl || blobUrl,
-        size: fileBuffer.length,
-        contentType: contentType
-      };
-    } catch (error) {
-      console.error('Error uploading file to Azure Blob Storage:', error);
-      throw error;
+// Delete a file from local storage
+const deleteFile = async (fileName) => {
+  try {
+    const filePath = path.join(uploadDir, fileName);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
     }
+    return true;
+  } catch (error) {
+    console.error('Error deleting file from local storage:', error);
+    throw error;
   }
+};
 
-  /**
-   * Get a Shared Access Signature (SAS) URL for a blob
-   * @param {string} blobPath - Path to the blob
-   * @param {number} expiryMinutes - Minutes until the SAS token expires
-   * @returns {Promise<string>} - SAS URL
-   */
-  async generateSasUrl(blobPath, expiryMinutes = 60) {
-    try {
-      const blockBlobClient = this.containerClient.getBlockBlobClient(blobPath);
-      
-      // Create a SAS token that expires in `expiryMinutes`
-      const expiryTime = new Date();
-      expiryTime.setMinutes(expiryTime.getMinutes() + expiryMinutes);
-      
-      const sasToken = await blockBlobClient.generateSasUrl({
-        permissions: {
-          read: true,
-          create: false,
-          write: false,
-          delete: false,
-          tag: false,
-          list: false
-        },
-        expiresOn: expiryTime
-      });
-      
-      return sasToken;
-    } catch (error) {
-      console.error('Error generating SAS URL:', error);
-      throw error;
-    }
-  }
+// Helper to guess MIME type from file extension
+const getMimeType = (fileName) => {
+  const ext = path.extname(fileName).toLowerCase();
+  const mimeTypes = {
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.pdf': 'application/pdf',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  };
+  
+  return mimeTypes[ext] || 'application/octet-stream';
+};
 
-  /**
-   * Delete a file from Azure Blob Storage
-   * @param {string} blobPath - Path to the blob
-   * @returns {Promise<boolean>} - Success status
-   */
-  async deleteFile(blobPath) {
-    try {
-      const blockBlobClient = this.containerClient.getBlockBlobClient(blobPath);
-      const response = await blockBlobClient.deleteIfExists();
-      
-      return response.succeeded;
-    } catch (error) {
-      console.error('Error deleting file from Azure Blob Storage:', error);
-      throw error;
-    }
-  }
-}
-
-module.exports = new CloudStorage(); 
+module.exports = {
+  init,
+  uploadFile,
+  getFile,
+  deleteFile
+}; 
