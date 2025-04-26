@@ -179,9 +179,12 @@ export default function BuyerDashboard() {
                     </div>
                     <div className="bg-gray-50 px-5 py-3">
                       <div className="text-sm">
-                        <Link href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                        <button 
+                          onClick={() => setActiveTab('orders')} 
+                          className="font-medium text-blue-600 hover:text-blue-500"
+                        >
                           View all
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -210,9 +213,12 @@ export default function BuyerDashboard() {
                     </div>
                     <div className="bg-gray-50 px-5 py-3">
                       <div className="text-sm">
-                        <Link href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                        <button 
+                          onClick={() => setActiveTab('saved')}
+                          className="font-medium text-blue-600 hover:text-blue-500"
+                        >
                           View all
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -241,9 +247,12 @@ export default function BuyerDashboard() {
                     </div>
                     <div className="bg-gray-50 px-5 py-3">
                       <div className="text-sm">
-                        <Link href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                        <button 
+                          onClick={() => setActiveTab('profile')}
+                          className="font-medium text-blue-600 hover:text-blue-500"
+                        >
                           View profile
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   </div>

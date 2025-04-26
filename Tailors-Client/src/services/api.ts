@@ -33,7 +33,27 @@ const onTokenRefreshed = (token: string) => {
 // Add request interceptor for token injection
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    // Check both localStorage and URL parameters for tokens (useful for cross-domain redirects)
+    let token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    
+    // If no token found in storage, check URL parameters
+    if (!token) {
+      // Get URL search params if redirected from another app
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+      
+      if (urlToken) {
+        // Store the token from URL
+        localStorage.setItem('token', urlToken);
+        token = urlToken;
+        
+        // Remove token from URL (clean it up)
+        const newUrl = window.location.pathname + 
+                      (urlParams.size > 1 ? '?' + urlParams.toString() : '');
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+    
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }

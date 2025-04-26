@@ -37,7 +37,10 @@ app.use(express.json({ limit: '10kb' })); // Body parser with size limit
 
 //Enable CORS with improved security
 app.use(cors({
-	origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+	origin: [
+    process.env.FRONTEND_URL || 'http://localhost:3000',
+    'http://localhost:3001'
+  ],
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
 	allowedHeaders: ['Content-Type', 'Authorization'],
 	credentials: true,
@@ -108,6 +111,7 @@ app.use('/api/pricing', pricingRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/listings', listingRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/business-credentials', businessCredentialRoutes);

@@ -9,6 +9,10 @@ import OrdersPage from './components/OrdersPage';
 import ProfilePage from './components/ProfilePage';
 import SettingsPage from './components/SettingsPage';
 
+// Import seller pages
+import SellerDashboard from './pages/seller/Dashboard';
+import ProductManager from './pages/seller/ProductManager';
+
 // Component for each page
 const Products = () => (
   <div className="card">
@@ -336,76 +340,82 @@ function App() {
   };
   
   return (
-    <div className="container-fluid">
-      {showWelcome && (
-        <div className="row">
-          <div className="col-12">
-            <div className="card mt-5">
-              <div className="card-header bg-primary text-white">
-                <h1 className="text-xl font-bold">Tailors Platform</h1>
-              </div>
-              <div className="card-body">
-                <h5 className="card-title">Welcome to the Tailors Platform</h5>
-                <p className="card-text">
-                  If you can see this message, the application is running correctly.
-                </p>
-                <p className="card-text">
-                  Now that the MongoDB connection is fixed, the platform should work as expected.
-                </p>
-                <button 
-                  className="btn btn-primary mt-3" 
-                  onClick={handleGetStarted}
-                >
-                  Get Started
-                </button>
+    <Routes>
+      <Route path="/seller/dashboard" element={<SellerDashboard />} />
+      <Route path="/seller/products" element={<ProductManager />} />
+      <Route path="*" element={
+        <div className="container-fluid">
+          {showWelcome && (
+            <div className="row">
+              <div className="col-12">
+                <div className="card mt-5">
+                  <div className="card-header bg-primary text-white">
+                    <h1 className="text-xl font-bold">Tailors Platform</h1>
+                  </div>
+                  <div className="card-body">
+                    <h5 className="card-title">Welcome to the Tailors Platform</h5>
+                    <p className="card-text">
+                      If you can see this message, the application is running correctly.
+                    </p>
+                    <p className="card-text">
+                      Now that the MongoDB connection is fixed, the platform should work as expected.
+                    </p>
+                    <button 
+                      className="btn btn-primary mt-3" 
+                      onClick={handleGetStarted}
+                    >
+                      Get Started
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-      
-      {showDashboard && (
-        <div className="row mt-4">
-          <div className="col-md-3">
-            <div className="list-group">
-              <button 
-                className={`list-group-item list-group-item-action ${activePage === 'dashboard' ? 'active' : ''}`}
-                onClick={() => handleNavigation('dashboard')}
-              >
-                Dashboard
-              </button>
-              <button 
-                className={`list-group-item list-group-item-action ${activePage === 'products' ? 'active' : ''}`}
-                onClick={() => handleNavigation('products')}
-              >
-                Products
-              </button>
-              <button 
-                className={`list-group-item list-group-item-action ${activePage === 'orders' ? 'active' : ''}`}
-                onClick={() => handleNavigation('orders')}
-              >
-                Orders
-              </button>
-              <button 
-                className={`list-group-item list-group-item-action ${activePage === 'profile' ? 'active' : ''}`}
-                onClick={() => handleNavigation('profile')}
-              >
-                Profile
-              </button>
-              <button 
-                className={`list-group-item list-group-item-action ${activePage === 'settings' ? 'active' : ''}`}
-                onClick={() => handleNavigation('settings')}
-              >
-                Settings
-              </button>
+          )}
+          
+          {showDashboard && (
+            <div className="row mt-4">
+              <div className="col-md-3">
+                <div className="list-group">
+                  <button 
+                    className={`list-group-item list-group-item-action ${activePage === 'dashboard' ? 'active' : ''}`}
+                    onClick={() => handleNavigation('dashboard')}
+                  >
+                    Dashboard
+                  </button>
+                  <button 
+                    className={`list-group-item list-group-item-action ${activePage === 'products' ? 'active' : ''}`}
+                    onClick={() => handleNavigation('products')}
+                  >
+                    Products
+                  </button>
+                  <button 
+                    className={`list-group-item list-group-item-action ${activePage === 'orders' ? 'active' : ''}`}
+                    onClick={() => handleNavigation('orders')}
+                  >
+                    Orders
+                  </button>
+                  <button 
+                    className={`list-group-item list-group-item-action ${activePage === 'profile' ? 'active' : ''}`}
+                    onClick={() => handleNavigation('profile')}
+                  >
+                    Profile
+                  </button>
+                  <button 
+                    className={`list-group-item list-group-item-action ${activePage === 'settings' ? 'active' : ''}`}
+                    onClick={() => handleNavigation('settings')}
+                  >
+                    Settings
+                  </button>
+                </div>
+              </div>
+              <div className="col-md-9">
+                {renderContent()}
+              </div>
             </div>
-          </div>
-          <div className="col-md-9">
-            {renderContent()}
-          </div>
+          )}
         </div>
-      )}
-    </div>
+      } />
+    </Routes>
   );
 }
 

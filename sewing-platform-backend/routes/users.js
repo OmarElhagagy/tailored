@@ -797,4 +797,70 @@ router.put('/wishlist/:listingId/notify', [
   }
 });
 
+// Add mock seller dashboard endpoint
+router.get('/sellers/dashboard', (req, res) => {
+  // Return mock dashboard data for now
+  res.json({
+    success: true,
+    data: {
+      totalSales: 1250.75,
+      pendingOrders: 3,
+      activeListings: 8,
+      totalCustomers: 12,
+      sellerRating: 4.7,
+      monthlyRevenue: [
+        { month: 'Jan', revenue: 320.50 },
+        { month: 'Feb', revenue: 410.25 },
+        { month: 'Mar', revenue: 520.00 }
+      ],
+      recentOrders: [
+        {
+          _id: 'order123',
+          product: {
+            _id: 'product1',
+            title: 'Tailored Suit'
+          },
+          buyer: {
+            _id: 'buyer1',
+            name: 'John Doe'
+          },
+          status: 'processing',
+          totalAmount: 299.99,
+          createdAt: new Date().toISOString()
+        },
+        {
+          _id: 'order124',
+          product: {
+            _id: 'product2',
+            title: 'Evening Dress'
+          },
+          buyer: {
+            _id: 'buyer2',
+            name: 'Jane Smith'
+          },
+          status: 'pending',
+          totalAmount: 189.50,
+          createdAt: new Date().toISOString()
+        }
+      ],
+      topProducts: [
+        {
+          _id: 'product1',
+          title: 'Tailored Suit',
+          price: 299.99,
+          salesCount: 5,
+          thumbnail: '/uploads/products/suit-thumbnail.jpg'
+        },
+        {
+          _id: 'product2',
+          title: 'Evening Dress',
+          price: 189.50,
+          salesCount: 3,
+          thumbnail: '/uploads/products/dress-thumbnail.jpg'
+        }
+      ]
+    }
+  });
+});
+
 module.exports = router;

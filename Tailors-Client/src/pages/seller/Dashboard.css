@@ -1,4 +1,99 @@
 /* Seller Dashboard Styles */
+.seller-dashboard {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Stat Cards */
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg-primary-light {
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.bg-success-light {
+  background-color: rgba(25, 135, 84, 0.1);
+}
+
+.bg-warning-light {
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.bg-info-light {
+  background-color: rgba(13, 202, 240, 0.1);
+}
+
+/* Charts */
+.chart-wrapper {
+  height: 300px;
+  margin-bottom: 20px;
+}
+
+/* Star Ratings */
+.star-rating {
+  display: flex;
+  align-items: center;
+}
+
+/* Product Cards */
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.product-thumbnail {
+  height: 150px;
+  object-fit: cover;
+}
+
+/* Responsive tables */
+@media (max-width: 768px) {
+  .responsive-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+}
+
+/* Custom badges */
+.badge-outline-primary {
+  color: #0d6efd;
+  background-color: transparent;
+  border: 1px solid #0d6efd;
+}
+
+.badge-outline-success {
+  color: #198754;
+  background-color: transparent;
+  border: 1px solid #198754;
+}
+
+/* Stats overview */
+.stats-overview {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Profile section */
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
 
 .dashboard-container {
   padding: 20px;

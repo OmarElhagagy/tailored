@@ -56,16 +56,25 @@ const SellerDashboard: React.FC = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
+        // Check if we have a token (even if user data is not fully loaded yet)
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          setError('No authentication token found');
+          setLoading(false);
+          return;
+        }
+        
         const response = await axios.get(`${API_URL}/api/sellers/dashboard`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${token}`
           }
         });
 
         if (response.data.success) {
           setStats(response.data.data);
           
-          // Calculate profile completion
+          // Calculate profile completion if user data is available
           if (user) {
             let completedFields = 0;
             let totalFields = 6; // Total number of seller profile fields
@@ -88,10 +97,14 @@ const SellerDashboard: React.FC = () => {
       }
     };
 
-    if (isAuthenticated && user?.role === 'seller') {
+    // Check if we have a token in local storage regardless of authentication state
+    const token = localStorage.getItem('token');
+    if (token) {
       fetchDashboardData();
+    } else if (!authLoading) {
+      setLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, authLoading]);
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'MMM dd, yyyy');
@@ -129,11 +142,13 @@ const SellerDashboard: React.FC = () => {
     );
   }
 
-  if (!isAuthenticated) {
+  // Only redirect if we're sure authentication has completed and user is not authenticated
+  if (!authLoading && !isAuthenticated && !localStorage.getItem('token')) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.role !== 'seller') {
+  // Only check user role if user object exists
+  if (!authLoading && isAuthenticated && user && user.role !== 'seller') {
     return <Navigate to="/" replace />;
   }
 
@@ -145,7 +160,7 @@ const SellerDashboard: React.FC = () => {
             <MdDashboard size={30} className="text-primary me-2" />
             <h1 className="mb-0">Seller Dashboard</h1>
           </div>
-          <p className="text-muted">Welcome back, {user.businessName || user.name}</p>
+          <p className="text-muted">Welcome back, {user?.businessName || user?.name || 'Seller'}</p>
         </Col>
         <Col xs="auto">
           <Link to="/seller/products/new">
@@ -391,7 +406,7 @@ const SellerDashboard: React.FC = () => {
                 </Card.Header>
                 <Card.Body>
                   <div className="d-flex flex-wrap">
-                    <Link to="/seller/products/new" className="quick-action-link">
+                    <Link to="/seller/products" className="quick-action-link">
                       <div className="quick-action-item text-center p-3">
                         <div className="quick-action-icon bg-primary-light text-primary mb-2">
                           <FaPlus />

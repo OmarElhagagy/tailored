@@ -57,6 +57,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     console.log('AuthProvider useEffect running');
+    
+    // Check for token in URL parameters (for cross-domain redirects)
+    const checkUrlForToken = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+      
+      if (urlToken) {
+        console.log('Token found in URL parameters');
+        localStorage.setItem('token', urlToken);
+        setToken(urlToken);
+        
+        // Clean up URL
+        const newUrl = window.location.pathname + 
+                      (urlParams.size > 1 ? '?' + urlParams.toString() : '');
+        window.history.replaceState({}, document.title, newUrl);
+        return true;
+      }
+      return false;
+    };
+    
+    // If no token in state, check URL
+    if (!token) {
+      const foundTokenInUrl = checkUrlForToken();
+      if (!foundTokenInUrl) {
+        console.log('No token found in URL or localStorage');
+        setLoading(false);
+        return;
+      }
+    }
+    
     const loadUser = async () => {
       if (token) {
         try {
