@@ -65,22 +65,16 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link href="/">
-          <a>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Tailors Platform
-            </h2>
-          </a>
+        <Link href="/" className="mt-6 text-center text-3xl font-extrabold text-gray-900 block">
+          Tailors Platform
         </Link>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Sign in to your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Or{' '}
-          <Link href="/register">
-            <a className="font-medium text-blue-600 hover:text-blue-500">
-              create a new account
-            </a>
+          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            create a new account
           </Link>
         </p>
       </div>
@@ -150,10 +144,8 @@ export default function Login() {
               </div>
 
               <div className="text-sm">
-                <Link href="/forgot-password">
-                  <a className="font-medium text-blue-600 hover:text-blue-500">
-                    Forgot your password?
-                  </a>
+                <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+                  Forgot your password?
                 </Link>
               </div>
             </div>

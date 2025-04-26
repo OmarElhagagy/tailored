@@ -136,21 +136,21 @@ export default function SellerProfile() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/">
-            <a className="text-2xl font-bold text-gray-900">Tailors Platform</a>
+          <Link href="/" className="text-2xl font-bold text-gray-900">
+            Tailors Platform
           </Link>
           <div className="flex space-x-4">
-            <Link href="/products">
-              <a className="px-4 py-2 text-gray-700 font-medium hover:underline">Products</a>
+            <Link href="/products" className="px-4 py-2 text-gray-700 font-medium hover:underline">
+              Products
             </Link>
-            <Link href="/sellers">
-              <a className="px-4 py-2 text-gray-700 font-medium hover:underline">Find Tailors</a>
+            <Link href="/sellers" className="px-4 py-2 text-gray-700 font-medium hover:underline">
+              Find Tailors
             </Link>
-            <Link href="/login">
-              <a className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50">Sign In</a>
+            <Link href="/login" className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50">
+              Sign In
             </Link>
-            <Link href="/register">
-              <a className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700">Register</a>
+            <Link href="/register" className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700">
+              Register
             </Link>
           </div>
         </div>
@@ -160,14 +160,14 @@ export default function SellerProfile() {
         <nav className="flex mb-8" aria-label="Breadcrumb">
           <ol className="flex items-center space-x-2">
             <li>
-              <Link href="/">
-                <a className="text-gray-500 hover:text-gray-700">Home</a>
+              <Link href="/" className="text-gray-500 hover:text-gray-700">
+                Home
               </Link>
             </li>
             <li className="flex items-center">
               <span className="mx-2 text-gray-400">/</span>
-              <Link href="/sellers">
-                <a className="text-gray-500 hover:text-gray-700">Sellers</a>
+              <Link href="/sellers" className="text-gray-500 hover:text-gray-700">
+                Sellers
               </Link>
             </li>
             <li className="flex items-center">
@@ -202,10 +202,8 @@ export default function SellerProfile() {
               </div>
             </div>
             <div>
-              <Link href={`/message/${seller.id}`}>
-                <a className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                  Contact Seller
-                </a>
+              <Link href={`/message/${seller.id}`} className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Contact Seller
               </Link>
             </div>
           </div>
@@ -299,11 +297,8 @@ export default function SellerProfile() {
                 <div className="mt-4 flex justify-between">
                   <div>
                     <h3 className="text-sm text-gray-700">
-                      <Link href={`/products/${product.id}`}>
-                        <a>
-                          <span aria-hidden="true" className="absolute inset-0" />
-                          {product.name}
-                        </a>
+                      <Link href={`/products/${product.id}`} className="absolute inset-0">
+                        {product.name}
                       </Link>
                     </h3>
                     <p className="mt-1 text-sm text-gray-500">{product.category}</p>

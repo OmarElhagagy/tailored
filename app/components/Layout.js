@@ -54,39 +54,35 @@ export default function Layout({ children }) {
     <div className="min-h-screen flex flex-col">
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/">
-            <a className="text-2xl font-bold text-gray-900">Tailors Platform</a>
+          <Link href="/" className="text-2xl font-bold text-gray-900">
+            Tailors Platform
           </Link>
           <div className="flex space-x-4">
-            <Link href="/products">
-              <a className="px-4 py-2 text-gray-700 font-medium hover:underline">Products</a>
+            <Link href="/products" className="px-4 py-2 text-gray-700 font-medium hover:underline">
+              Products
             </Link>
-            <Link href="/sellers">
-              <a className="px-4 py-2 text-gray-700 font-medium hover:underline">Find Tailors</a>
+            <Link href="/sellers" className="px-4 py-2 text-gray-700 font-medium hover:underline">
+              Find Tailors
             </Link>
             {!loading && user ? (
               <div className="flex items-center space-x-4">
                 {user.role === 'buyer' && (
-                  <Link href="/cart">
-                    <a className="px-4 py-2 text-gray-700 font-medium hover:underline flex items-center">
-                      <span>Cart</span>
-                      <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        2
-                      </span>
-                    </a>
+                  <Link href="/cart" className="px-4 py-2 text-gray-700 font-medium hover:underline flex items-center">
+                    <span>Cart</span>
+                    <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      2
+                    </span>
                   </Link>
                 )}
                 <div className="relative">
                   <div className="flex items-center">
-                    <Link href={user.role === 'seller' ? '/admin' : '/dashboard'}>
-                      <a className="flex items-center">
-                        <span className="inline-flex h-8 w-8 rounded-full bg-gray-500 items-center justify-center">
-                          <span className="text-sm font-medium leading-none text-white">
-                            {user.name.charAt(0).toUpperCase()}
-                          </span>
+                    <Link href={user.role === 'seller' ? '/admin' : '/dashboard'} className="flex items-center">
+                      <span className="inline-flex h-8 w-8 rounded-full bg-gray-500 items-center justify-center">
+                        <span className="text-sm font-medium leading-none text-white">
+                          {user.name.charAt(0).toUpperCase()}
                         </span>
-                        <span className="ml-2 text-gray-700">{user.name}</span>
-                      </a>
+                      </span>
+                      <span className="ml-2 text-gray-700">{user.name}</span>
                     </Link>
                   </div>
                 </div>
@@ -99,11 +95,11 @@ export default function Layout({ children }) {
               </div>
             ) : (
               <div className="flex space-x-4">
-                <Link href="/login">
-                  <a className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50">Sign In</a>
+                <Link href="/login" className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50">
+                  Sign In
                 </Link>
-                <Link href="/register">
-                  <a className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700">Register</a>
+                <Link href="/register" className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700">
+                  Register
                 </Link>
               </div>
             )}
