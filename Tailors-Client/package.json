@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Frontend application for Tailors platform",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite --host",
     "start": "vite --host",

@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL } from '../../config/constants';
 import { useAuth } from '../../contexts/AuthContext';
+import { Container, Row, Col, Card, Form, Button, InputGroup, Spinner, Alert, Badge } from 'react-bootstrap';
+import BuyerSidebar from '../../components/BuyerSidebar';
+import { FaSearch, FaStar, FaFilter } from 'react-icons/fa';
 
 // Types
 interface Product {
@@ -39,7 +42,7 @@ interface FilterOption {
 }
 
 const ProductBrowse: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -205,313 +208,169 @@ const ProductBrowse: React.FC = () => {
     setPage(1);
   };
 
-  // Render star rating
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex items-center">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <svg
-            key={star}
-            className={`w-4 h-4 ${
-              star <= rating ? 'text-yellow-400' : 'text-gray-300'
-            }`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-        ))}
-        <span className="ml-1 text-gray-600 text-sm">({rating.toFixed(1)})</span>
-      </div>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Browse Products</h1>
+    <Container fluid className="py-4">
+      <Row className="mb-4">
+        <Col>
+          <h1 className="mb-0">Browse Products</h1>
+          <p className="text-muted">Find custom tailoring services for your needs</p>
+        </Col>
+      </Row>
 
-        {/* Search Bar */}
-        <div className="mb-8">
-          <form onSubmit={handleSearchSubmit}>
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-grow">
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Search for products, tailors, or services..."
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-              </div>
-              <div>
-                <button
-                  type="submit"
-                  className="w-full md:w-auto px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Search
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
+      <Row>
+        {/* Sidebar for logged-in buyers */}
+        {isAuthenticated && user?.role === 'buyer' && (
+          <Col md={3} lg={2} className="mb-4">
+            <BuyerSidebar />
+          </Col>
+        )}
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar */}
-          <div className="w-full lg:w-1/4">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-gray-900">Filters</h2>
-                <button
+        <Col md={isAuthenticated && user?.role === 'buyer' ? 9 : 12} lg={isAuthenticated && user?.role === 'buyer' ? 10 : 12}>
+          {/* Search and Filter Card */}
+          <Card className="mb-4">
+            <Card.Body>
+              <Form onSubmit={handleSearchSubmit}>
+                <Row className="mb-3">
+                  <Col md={8}>
+                    <InputGroup>
+                      <Form.Control
+                        type="text"
+                        placeholder="Search for products, tailors, or services..."
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                      />
+                      <Button type="submit" variant="primary">
+                        <FaSearch className="me-2" /> Search
+                      </Button>
+                    </InputGroup>
+                  </Col>
+                  <Col md={4}>
+                    <Form.Select onChange={handleSortChange}>
+                      <option value="relevance">Sort by: Relevance</option>
+                      <option value="price_asc">Price: Low to High</option>
+                      <option value="price_desc">Price: High to Low</option>
+                      <option value="newest">Newest First</option>
+                      <option value="rating">Highest Rated</option>
+                    </Form.Select>
+                  </Col>
+                </Row>
+
+                <Button 
+                  variant="outline-secondary" 
+                  className="mb-3" 
                   onClick={clearFilters}
-                  className="text-sm text-blue-600 hover:text-blue-800"
                 >
-                  Clear All
-                </button>
-              </div>
-
-              {/* Category Filter */}
-              <div className="mb-6">
-                <h3 className="text-md font-medium text-gray-900 mb-2">Categories</h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {categoryOptions.map((category) => (
-                    <div key={category._id} className="flex items-center">
-                      <input
-                        id={`category-${category._id}`}
-                        type="checkbox"
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        checked={filters.category.includes(category._id)}
-                        onChange={() => handleCategoryChange(category._id)}
-                      />
-                      <label
-                        htmlFor={`category-${category._id}`}
-                        className="ml-2 text-sm text-gray-700"
-                      >
-                        {category._id} ({category.count})
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price Range Filter */}
-              <div className="mb-6">
-                <h3 className="text-md font-medium text-gray-900 mb-2">Price Range</h3>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">${filters.priceRange[0]}</span>
-                  <span className="text-sm text-gray-600">${filters.priceRange[1]}</span>
-                </div>
-                <input
-                  type="range"
-                  min={priceRanges.minPrice}
-                  max={priceRanges.maxPrice}
-                  value={filters.priceRange[1]}
-                  onChange={(e) => handlePriceRangeChange([filters.priceRange[0], parseInt(e.target.value)])}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-
-              {/* Product Rating Filter */}
-              <div className="mb-6">
-                <h3 className="text-md font-medium text-gray-900 mb-2">Product Rating</h3>
-                <div className="space-y-2">
-                  {[4, 3, 2, 1].map((rating) => (
-                    <div key={rating} className="flex items-center">
-                      <input
-                        id={`rating-${rating}`}
-                        type="radio"
-                        name="rating"
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                        checked={filters.rating === rating}
-                        onChange={() => handleRatingChange(rating)}
-                      />
-                      <label
-                        htmlFor={`rating-${rating}`}
-                        className="ml-2 text-sm text-gray-700 flex items-center"
-                      >
-                        {renderStars(rating)} & Up
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Seller Rating Filter */}
-              <div className="mb-6">
-                <h3 className="text-md font-medium text-gray-900 mb-2">Seller Rating</h3>
-                <div className="space-y-2">
-                  {[4, 3, 2, 1].map((rating) => (
-                    <div key={rating} className="flex items-center">
-                      <input
-                        id={`seller-rating-${rating}`}
-                        type="radio"
-                        name="sellerRating"
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                        checked={filters.sellerRating === rating}
-                        onChange={() => handleSellerRatingChange(rating)}
-                      />
-                      <label
-                        htmlFor={`seller-rating-${rating}`}
-                        className="ml-2 text-sm text-gray-700 flex items-center"
-                      >
-                        {renderStars(rating)} & Up
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+                  <FaFilter className="me-2" /> Clear Filters
+                </Button>
+              </Form>
+            </Card.Body>
+          </Card>
 
           {/* Products Grid */}
-          <div className="w-full lg:w-3/4">
-            <div className="bg-white p-6 rounded-lg shadow">
-              {/* Sort and Result Count */}
-              <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-                <p className="text-gray-600 mb-2 md:mb-0">
-                  Showing {products.length} products
-                </p>
-                <div className="flex items-center">
-                  <label htmlFor="sort" className="text-sm text-gray-600 mr-2">
-                    Sort by:
-                  </label>
-                  <select
-                    id="sort"
-                    className="border border-gray-300 rounded-md text-sm px-2 py-1"
-                    value={sortBy === 'price' ? `price_${sortDirection}` : sortBy}
-                    onChange={handleSortChange}
-                  >
-                    <option value="relevance">Relevance</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
-                    <option value="newest">Newest</option>
-                    <option value="rating">Best Rating</option>
-                  </select>
-                </div>
-              </div>
-
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-                </div>
-              ) : error ? (
-                <div className="text-center text-red-600 py-12">{error}</div>
-              ) : products.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-600 mb-4">No products found matching your criteria.</p>
-                  <button
-                    onClick={clearFilters}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Clear Filters
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {products.map((product) => (
-                    <Link
-                      key={product._id}
-                      to={`/product/${product._id}`}
-                      className="group"
-                    >
-                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-                        <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden bg-gray-200">
-                          <img
-                            src={product.mainPhoto || 'https://via.placeholder.com/300'}
-                            alt={product.title}
-                            className="object-cover object-center w-full h-48 group-hover:opacity-90 transition-opacity"
-                          />
-                        </div>
-                        <div className="p-4">
-                          <div className="mb-1 text-sm text-gray-500">{product.category}</div>
-                          <h3 className="text-lg font-medium text-gray-900 group-hover:text-blue-600 transition-colors mb-2 truncate">
-                            {product.title}
-                          </h3>
-                          <p className="text-gray-700 font-bold mb-2">${product.price.toFixed(2)}</p>
-                          <div className="flex items-center justify-between">
-                            <div className="text-sm text-gray-600 truncate">
-                              By {product.seller.businessName}
-                            </div>
-                            {product.rating && product.rating.average > 0 && (
-                              <div className="flex items-center">
-                                {renderStars(product.rating.average)}
-                              </div>
-                            )}
-                          </div>
-                          <div className="mt-3">
-                            <span
-                              className={`px-2 py-1 text-xs rounded ${
-                                product.stockStatus === 'in_stock'
-                                  ? 'bg-green-100 text-green-800'
-                                  : product.stockStatus === 'low_stock'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}
-                            >
-                              {product.stockStatus === 'in_stock'
-                                ? 'In Stock'
-                                : product.stockStatus === 'low_stock'
-                                ? 'Low Stock'
-                                : 'Out of Stock'}
-                            </span>
-                          </div>
+          {loading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" variant="primary" />
+              <p className="mt-3">Loading products...</p>
+            </div>
+          ) : error ? (
+            <Alert variant="danger">{error}</Alert>
+          ) : products.length === 0 ? (
+            <Alert variant="info">
+              No products found matching your criteria. Try adjusting your filters or search terms.
+            </Alert>
+          ) : (
+            <Row>
+              {products.map(product => (
+                <Col md={6} lg={4} xl={3} key={product._id} className="mb-4">
+                  <Card className="h-100 product-card">
+                    <div className="product-image-container">
+                      <img 
+                        src={product.mainPhoto ? `${API_URL}/uploads/${product.mainPhoto}` : '/placeholder-product.jpg'} 
+                        alt={product.title}
+                        className="card-img-top product-image"
+                      />
+                      <div className="product-status">
+                        {product.stockStatus === 'in_stock' && (
+                          <Badge bg="success">In Stock</Badge>
+                        )}
+                        {product.stockStatus === 'low_stock' && (
+                          <Badge bg="warning" text="dark">Low Stock</Badge>
+                        )}
+                        {product.stockStatus === 'out_of_stock' && (
+                          <Badge bg="danger">Out of Stock</Badge>
+                        )}
+                      </div>
+                    </div>
+                    <Card.Body className="d-flex flex-column">
+                      <Card.Title className="mb-2">{product.title}</Card.Title>
+                      <Card.Text className="text-muted small mb-2">
+                        {product.description.substring(0, 80)}...
+                      </Card.Text>
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span className="fw-bold text-primary">${product.price.toFixed(2)}</span>
+                        <div className="d-flex align-items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <FaStar 
+                              key={i}
+                              color={i < Math.round(product.rating.average) ? '#ffc107' : '#e4e5e9'}
+                              size={14}
+                              className="me-1"
+                            />
+                          ))}
+                          <small className="text-muted">({product.rating.count})</small>
                         </div>
                       </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
+                      <div className="text-muted small mb-3">
+                        Seller: <Link to={`/seller/${product.seller._id}`}>{product.seller.businessName}</Link>
+                      </div>
+                      <Link to={`/product/${product._id}`} className="btn btn-primary mt-auto">
+                        View Details
+                      </Link>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          )}
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex justify-center mt-8">
-                  <nav className="flex items-center space-x-1">
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="d-flex justify-content-center mt-4">
+              <ul className="pagination">
+                <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                    disabled={page === 1}
+                  >
+                    Previous
+                  </button>
+                </li>
+                {[...Array(totalPages)].map((_, i) => (
+                  <li key={i} className={`page-item ${page === i + 1 ? 'active' : ''}`}>
                     <button
-                      onClick={() => setPage(prev => Math.max(prev - 1, 1))}
-                      disabled={page === 1}
-                      className={`px-3 py-1 rounded-md ${
-                        page === 1
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-white text-gray-700 hover:bg-gray-50'
-                      } border`}
+                      className="page-link"
+                      onClick={() => setPage(i + 1)}
                     >
-                      Previous
+                      {i + 1}
                     </button>
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
-                      <button
-                        key={pageNumber}
-                        onClick={() => setPage(pageNumber)}
-                        className={`px-3 py-1 rounded-md ${
-                          page === pageNumber
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-50'
-                        } border`}
-                      >
-                        {pageNumber}
-                      </button>
-                    ))}
-                    
-                    <button
-                      onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={page === totalPages}
-                      className={`px-3 py-1 rounded-md ${
-                        page === totalPages
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-white text-gray-700 hover:bg-gray-50'
-                      } border`}
-                    >
-                      Next
-                    </button>
-                  </nav>
-                </div>
-              )}
+                  </li>
+                ))}
+                <li className={`page-item ${page === totalPages ? 'disabled' : ''}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={page === totalPages}
+                  >
+                    Next
+                  </button>
+                </li>
+              </ul>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          )}
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

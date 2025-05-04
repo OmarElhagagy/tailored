@@ -27,11 +27,8 @@ export default function Register() {
     if (token && user) {
       try {
         const userData = JSON.parse(user);
-        if (userData.role === 'buyer') {
-          router.push('/dashboard');
-        } else if (userData.role === 'seller') {
-          router.push('/seller/dashboard');
-        }
+        // Redirect all users to the same dashboard
+        router.push('/dashboard');
       } catch (err) {
         console.error('Error parsing user data', err);
         localStorage.removeItem('token');
@@ -171,13 +168,8 @@ export default function Register() {
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('token', mockToken);
         
-        // Redirect based on role
-        if (formData.role === 'buyer') {
-          router.push('/dashboard');
-        } else {
-          // Redirect to client app seller dashboard with token
-          window.location.href = `http://localhost:3000/seller/dashboard?token=${mockToken}`;
-        }
+        // Redirect all users to the same dashboard
+        router.push('/dashboard');
       } catch (error) {
         console.error('Registration error:', error);
         setErrors({ general: 'Failed to register. Please try again.' });
@@ -396,120 +388,122 @@ export default function Register() {
                         )}
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Seller (Tailor)</h3>
-                        <p className="text-xs text-gray-500">I want to offer my tailoring services</p>
+                        <h3 className="text-sm font-medium text-gray-900">Seller</h3>
+                        <p className="text-xs text-gray-500">I want to sell tailoring services</p>
                       </div>
                     </div>
                   </div>
                 </div>
                 
                 {errors.role && <p className="mt-2 text-sm text-red-600">{errors.role}</p>}
-              </div>
-              
-              <div className="mt-6 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(1)}
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Back
-                </button>
-                <button
-                  type="submit"
-                  className="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Continue
-                </button>
+                
+                <div className="mt-6">
+                  <button
+                    type="submit"
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Continue
+                  </button>
+                </div>
               </div>
             </form>
           )}
           
-          {/* Step 3: Role-specific Details */}
+          {/* Step 3: Additional Details */}
           {currentStep === 3 && (
             <form onSubmit={handleSubmitFinal}>
-              {formData.role === 'buyer' ? (
-                <div className="p-4 bg-blue-50 rounded-md mb-6">
-                  <h3 className="text-sm font-medium text-blue-800">Your Account as a Buyer</h3>
-                  <p className="mt-1 text-sm text-blue-700">
-                    You're all set to start shopping for tailoring services! After registration, you'll be able to:
-                  </p>
-                  <ul className="mt-2 text-sm text-blue-700 list-disc pl-5 space-y-1">
-                    <li>Browse products and services from tailors</li>
-                    <li>Place orders for custom tailoring</li>
-                    <li>Communicate with tailors</li>
-                    <li>Track your orders</li>
-                  </ul>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div>
-                    <label htmlFor="businessName" className="block text-sm font-medium text-gray-700">
-                      Business Name
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        id="businessName"
-                        name="businessName"
-                        type="text"
-                        required
-                        value={formData.businessName}
-                        onChange={handleInputChange}
-                        className={`appearance-none block w-full px-3 py-2 border ${errors.businessName ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-                      />
-                    </div>
-                    {errors.businessName && <p className="mt-2 text-sm text-red-600">{errors.businessName}</p>}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="businessDescription" className="block text-sm font-medium text-gray-700">
-                      Business Description
-                    </label>
-                    <div className="mt-1">
-                      <textarea
-                        id="businessDescription"
-                        name="businessDescription"
-                        rows="3"
-                        value={formData.businessDescription}
-                        onChange={handleInputChange}
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        placeholder="Tell buyers about your services, specialties, experience, etc."
-                      ></textarea>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                      Location
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        id="location"
-                        name="location"
-                        type="text"
-                        required
-                        value={formData.location}
-                        onChange={handleInputChange}
-                        className={`appearance-none block w-full px-3 py-2 border ${errors.location ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-                        placeholder="City, State, Country"
-                      />
-                    </div>
-                    {errors.location && <p className="mt-2 text-sm text-red-600">{errors.location}</p>}
-                  </div>
+              {errors.general && (
+                <div className="mb-4 p-2 bg-red-100 text-red-700 rounded text-sm">
+                  {errors.general}
                 </div>
               )}
+              
+              <div className="space-y-6">
+                {formData.role === 'seller' && (
+                  <>
+                    <div>
+                      <label htmlFor="businessName" className="block text-sm font-medium text-gray-700">
+                        Business/Shop Name
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          id="businessName"
+                          name="businessName"
+                          type="text"
+                          required
+                          value={formData.businessName}
+                          onChange={handleInputChange}
+                          className={`appearance-none block w-full px-3 py-2 border ${errors.businessName ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                        />
+                      </div>
+                      {errors.businessName && <p className="mt-2 text-sm text-red-600">{errors.businessName}</p>}
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="businessDescription" className="block text-sm font-medium text-gray-700">
+                        Business Description
+                      </label>
+                      <div className="mt-1">
+                        <textarea
+                          id="businessDescription"
+                          name="businessDescription"
+                          rows={3}
+                          value={formData.businessDescription}
+                          onChange={handleInputChange}
+                          placeholder="Tell customers about your tailoring services, specialties, experience, etc."
+                          className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                        Location
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          id="location"
+                          name="location"
+                          type="text"
+                          required
+                          value={formData.location}
+                          onChange={handleInputChange}
+                          placeholder="City, State/Province, Country"
+                          className={`appearance-none block w-full px-3 py-2 border ${errors.location ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                        />
+                      </div>
+                      {errors.location && <p className="mt-2 text-sm text-red-600">{errors.location}</p>}
+                    </div>
+                  </>
+                )}
+                
+                <div>
+                  <p className="text-sm text-gray-500 mb-4">
+                    By clicking Register, you agree to our {' '}
+                    <Link href="/terms" className="font-medium text-blue-600 hover:text-blue-500">
+                      Terms of Service
+                    </Link>
+                    {' '} and {' '}
+                    <Link href="/privacy" className="font-medium text-blue-600 hover:text-blue-500">
+                      Privacy Policy
+                    </Link>.
+                  </p>
+                </div>
+              </div>
               
               <div className="mt-6 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => setCurrentStep(2)}
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   Back
                 </button>
+                
                 <button
                   type="submit"
+                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   disabled={loading}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   {loading ? (
                     <>
@@ -517,30 +511,17 @@ export default function Register() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Creating Account...
+                      Processing...
                     </>
                   ) : (
-                    'Create Account'
+                    'Register'
                   )}
                 </button>
               </div>
             </form>
           )}
-          
-          <div className="mt-6">
-            <p className="text-center text-xs text-gray-600">
-              By creating an account, you agree to our{' '}
-              <Link href="/terms" className="font-medium text-blue-600 hover:text-blue-500">
-                Terms of Service
-              </Link>{' '}
-              and{' '}
-              <Link href="/privacy" className="font-medium text-blue-600 hover:text-blue-500">
-                Privacy Policy
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </main>
   );
-} 
+}

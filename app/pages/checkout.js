@@ -19,6 +19,12 @@ export default function Checkout() {
     country: 'United States',
     paymentMethod: 'cashOnDelivery'
   });
+  const [orderSummary, setOrderSummary] = useState({
+    subtotal: 0,
+    shipping: 0,
+    tax: 0,
+    total: 0
+  });
   
   // Mock cart items - same as cart page
   const mockCartItems = [
@@ -47,35 +53,32 @@ export default function Checkout() {
   ];
   
   useEffect(() => {
-    // In a real app, fetch cart items from API or localStorage
-    const storedUser = localStorage.getItem('user');
+    // Check if user is logged in
     const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
     
     if (!token || !storedUser) {
+      // Redirect to login page if not authenticated
       router.push('/login?redirect=/checkout');
       return;
     }
     
     try {
-      const userObj = JSON.parse(storedUser);
-      setUser(userObj);
+      setUser(JSON.parse(storedUser));
       
       // For demo purposes, we're using mock data
       // In a real app, you would fetch the user's cart from an API
       setCartItems(mockCartItems);
-      
-      // Pre-fill form with user data if available
-      if (userObj) {
-        setFormData(prevData => ({
-          ...prevData,
-          email: userObj.email || '',
-          phone: userObj.phone || '',
-          firstName: userObj.name ? userObj.name.split(' ')[0] : '',
-          lastName: userObj.name ? userObj.name.split(' ')[1] || '' : ''
-        }));
-      }
-      
       setLoading(false);
+      
+      // Calculate order summary
+      const subtotal = mockCartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+      setOrderSummary({
+        subtotal: subtotal,
+        shipping: 10,
+        tax: subtotal * 0.08,
+        total: subtotal + 10 + (subtotal * 0.08)
+      });
     } catch (err) {
       console.error('Error parsing user data:', err);
       localStorage.removeItem('user');

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 interface OrderData {
   id: string;
@@ -34,6 +36,16 @@ interface InvoiceData {
 }
 
 const DashboardPage: React.FC = () => {
+  const { user, isAuthenticated, loading } = useAuth();
+  
+  // Check if user has permission to access dashboard features
+  const isSeller = user?.role === 'seller' || user?.role === 'admin';
+  const isBuyer = user?.role === 'buyer';
+  const isAdmin = user?.role === 'admin';
+  
+  // State for showing permission denied message
+  const [accessDenied, setAccessDenied] = useState(false);
+  
   const [stats, setStats] = useState<StatCard[]>([
     { title: 'Total Products', value: 12, change: 8.5, icon: 'box' },
     { title: 'Orders', value: 5, change: 12.3, icon: 'shopping-bag' },
@@ -192,6 +204,20 @@ const DashboardPage: React.FC = () => {
   
   // Update useEffect to also filter order and completed counts by date
   useEffect(() => {
+    // First, check user role permissions
+    if (!loading && user) {
+      // If they're not a seller/admin attempting to access seller features
+      if (!isSeller && (activeTab === 'invoices' || activeQuickAction === 'create-invoice')) {
+        setAccessDenied(true);
+        // Reset to appropriate tab for buyers
+        setActiveTab('orders');
+        setActiveQuickAction(null);
+        setIsModalOpen(false);
+      } else {
+        setAccessDenied(false);
+      }
+    }
+    
     if (timeRange) {
       setIsLoading(true);
       
@@ -620,391 +646,382 @@ const DashboardPage: React.FC = () => {
   
   return (
     <div className="card">
-      <div className="card-header d-flex justify-content-between align-items-center">
-        <h3>Dashboard</h3>
-        <div className="d-flex align-items-center">
-          {showDateRangePicker && (
-            <div className="me-3 bg-light p-2 rounded border d-flex align-items-center">
-              <div className="input-group input-group-sm me-2" style={{ width: '200px' }}>
-                <span className="input-group-text">From</span>
-                <input 
-                  type="date" 
-                  className="form-control form-control-sm"
-                  name="startDate"
-                  value={customDateRange.startDate}
-                  onChange={handleDateRangeChange}
-                />
+      {loading ? (
+        <div className="text-center py-4">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2">Loading dashboard...</p>
+        </div>
+      ) : !isAuthenticated ? (
+        <Navigate to="/login" replace />
+      ) : (
+        <>
+          <div className="card-header d-flex justify-content-between align-items-center">
+            <h3>Dashboard {isBuyer ? '- My Orders' : isSeller ? '- Seller Portal' : ''}</h3>
+            {isSeller && (
+              <div className="d-flex align-items-center">
+                {showDateRangePicker && (
+                  <div className="me-3 bg-light p-2 rounded border d-flex align-items-center">
+                    <div className="input-group input-group-sm me-2" style={{ width: '200px' }}>
+                      <span className="input-group-text">From</span>
+                      <input 
+                        type="date" 
+                        className="form-control form-control-sm"
+                        name="startDate"
+                        value={customDateRange.startDate}
+                        onChange={handleDateRangeChange}
+                      />
+                    </div>
+                    <div className="input-group input-group-sm me-2" style={{ width: '200px' }}>
+                      <span className="input-group-text">To</span>
+                      <input 
+                        type="date" 
+                        className="form-control form-control-sm"
+                        name="endDate"
+                        value={customDateRange.endDate}
+                        onChange={handleDateRangeChange}
+                      />
+                    </div>
+                    <button 
+                      className="btn btn-sm btn-primary"
+                      onClick={applyCustomDateRange}
+                    >
+                      Apply
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-outline-secondary ms-1"
+                      onClick={() => setShowDateRangePicker(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+                <div className="btn-group">
+                  <button 
+                    className={`btn btn-sm ${timeRange === 'day' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => handleRangeChange('day')}
+                  >
+                    Day
+                  </button>
+                  <button 
+                    className={`btn btn-sm ${timeRange === 'week' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => handleRangeChange('week')}
+                  >
+                    Week
+                  </button>
+                  <button 
+                    className={`btn btn-sm ${timeRange === 'month' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => handleRangeChange('month')}
+                  >
+                    Month
+                  </button>
+                  <button 
+                    className={`btn btn-sm ${timeRange === 'custom' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setShowDateRangePicker(true)}
+                  >
+                    Custom Range
+                  </button>
+                </div>
               </div>
-              <div className="input-group input-group-sm me-2" style={{ width: '200px' }}>
-                <span className="input-group-text">To</span>
-                <input 
-                  type="date" 
-                  className="form-control form-control-sm"
-                  name="endDate"
-                  value={customDateRange.endDate}
-                  onChange={handleDateRangeChange}
-                />
+            )}
+          </div>
+          <div className="card-body">
+            {/* Access Denied Alert */}
+            {accessDenied && (
+              <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Access Denied!</strong> You don't have permission to access this feature.
+                <button type="button" className="btn-close" onClick={() => setAccessDenied(false)}></button>
               </div>
-              <button 
-                className="btn btn-sm btn-primary"
-                onClick={applyCustomDateRange}
-              >
-                Apply
-              </button>
-              <button 
-                className="btn btn-sm btn-outline-secondary ms-1"
-                onClick={() => setShowDateRangePicker(false)}
-              >
-                Cancel
-              </button>
+            )}
+            
+            {/* Invoice and Report Alerts */}
+            {showInvoiceAlert && lastCreatedInvoice && (
+              <div className="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>Invoice Created!</strong> Invoice {lastCreatedInvoice.id} for {lastCreatedInvoice.customer} has been generated with a total of ${lastCreatedInvoice.total.toFixed(2)}.
+                <button type="button" className="btn-close" onClick={() => setShowInvoiceAlert(false)}></button>
+              </div>
+            )}
+            
+            {isLoading ? (
+              <div className="text-center py-4">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="mt-2">Loading dashboard data...</p>
+              </div>
+            ) : (
+              <>
+                {/* Stats section - Only for sellers */}
+                {isSeller && (
+                  <div className="row">
+                    {stats.map((stat, index) => (
+                      <div className="col-md-3 mb-4" key={index}>
+                        <div className="card h-100">
+                          <div className="card-body">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                              <h6 className="text-muted mb-0">{stat.title}</h6>
+                              <div className={`rounded-circle p-2 bg-light text-${stat.change >= 0 ? 'success' : 'danger'}`}>
+                                <i className={`bi bi-${stat.icon}`}></i>
+                              </div>
+                            </div>
+                            <h3 className="mb-0">{stat.title === 'Revenue' ? `$${stat.value.toFixed(2)}` : stat.value}</h3>
+                            <div className={`small mt-2 ${stat.change >= 0 ? 'text-success' : 'text-danger'}`}>
+                              <i className={`bi bi-arrow-${stat.change >= 0 ? 'up' : 'down'}`}></i> {Math.abs(stat.change)}% 
+                              <span className="text-muted ms-1">
+                                {timeRange === 'custom' 
+                                  ? `from ${new Date(customDateRange.startDate).toLocaleDateString()} to ${new Date(customDateRange.endDate).toLocaleDateString()}`
+                                  : `from previous ${timeRange}`
+                                }
+                              </span>
+                            </div>
+                            {stat.title === 'Revenue' && (
+                              <div className="mt-2 small">
+                                <div className="text-muted d-flex justify-content-between">
+                                  <span>Unpaid invoices:</span>
+                                  <span>${(calculateRevenue().total - calculateRevenue().current).toFixed(2)}</span>
+                                </div>
+                                <div className="text-muted d-flex justify-content-between">
+                                  <span>Uninvoiced orders:</span>
+                                  <span>${calculateRevenue().potential.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Main content area */}
+                <div className="row mt-2">
+                  <div className="col-md-8">
+                    {/* Tabs - different for buyers and sellers */}
+                    {isSeller ? (
+                      <ul className="nav nav-tabs mb-3">
+                        <li className="nav-item">
+                          <button 
+                            className={`nav-link ${activeTab === 'orders' ? 'active' : ''}`} 
+                            onClick={() => setActiveTab('orders')}
+                          >
+                            Orders
+                          </button>
+                        </li>
+                        <li className="nav-item">
+                          <button 
+                            className={`nav-link ${activeTab === 'invoices' ? 'active' : ''}`} 
+                            onClick={() => setActiveTab('invoices')}
+                          >
+                            Invoices
+                          </button>
+                        </li>
+                      </ul>
+                    ) : (
+                      <ul className="nav nav-tabs mb-3">
+                        <li className="nav-item">
+                          <button 
+                            className="nav-link active" 
+                          >
+                            My Orders
+                          </button>
+                        </li>
+                        <li className="nav-item">
+                          <button 
+                            className="nav-link"
+                            onClick={() => setAccessDenied(true)}
+                          >
+                            Saved Items
+                          </button>
+                        </li>
+                      </ul>
+                    )}
+                    
+                    {/* Orders tab - shown to both buyers and sellers */}
+                    {(isBuyer || (isSeller && activeTab === 'orders')) && (
+                      <>
+                        <h4>{isBuyer ? 'My Orders' : 'Recent Orders'}</h4>
+                        <div className="table-responsive">
+                          <table className="table table-hover">
+                            <thead>
+                              <tr>
+                                <th>Order ID</th>
+                                <th>{isBuyer ? 'Tailor' : 'Customer'}</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                {isSeller && <th>Action</th>}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {recentOrders.map(order => {
+                                // Check if this order already has an invoice (using strict equality)
+                                const hasInvoice = invoices.some(inv => inv.orderId === order.id);
+                                
+                                return (
+                                  <tr key={order.id} className="cursor-pointer">
+                                    <td>{order.id}</td>
+                                    <td>{order.customer}</td>
+                                    <td>{order.date}</td>
+                                    <td>
+                                      <span className={`badge ${getStatusBadgeClass(order.status)}`}>
+                                        {order.status}
+                                      </span>
+                                    </td>
+                                    <td>${order.total.toFixed(2)}</td>
+                                    {isSeller && (
+                                      <td>
+                                        {order.status !== 'Completed' && order.status !== 'Cancelled' && (
+                                          <button 
+                                            className="btn btn-sm btn-outline-success"
+                                            onClick={() => markOrderComplete(order.id)}
+                                          >
+                                            Mark Complete
+                                          </button>
+                                        )}
+                                        {order.status === 'Completed' && !hasInvoice && (
+                                          <button 
+                                            className="btn btn-sm btn-outline-primary"
+                                            onClick={() => {
+                                              setSelectedOrderForInvoice(order.id);
+                                              handleQuickAction('create-invoice');
+                                            }}
+                                          >
+                                            Create Invoice
+                                          </button>
+                                        )}
+                                        {order.status === 'Completed' && hasInvoice && (
+                                          <span className="badge bg-light text-dark border">
+                                            Invoiced
+                                          </span>
+                                        )}
+                                      </td>
+                                    )}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="text-end">
+                          <button 
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={handleViewAllOrders}
+                          >
+                            {showAllOrders ? "Show Less" : "View All Orders"}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  
+                  <div className="col-md-4">
+                    <h4>Status Overview</h4>
+                    <div className="card">
+                      <div className="card-body">
+                        <div className="mb-3">
+                          <div className="d-flex justify-content-between mb-1">
+                            <span>Completed</span>
+                            <span>60%</span>
+                          </div>
+                          <div className="progress" style={{ height: '6px' }}>
+                            <div 
+                              className="progress-bar bg-success" 
+                              role="progressbar" 
+                              style={{ width: '60%' }} 
+                              aria-valuenow={60} 
+                              aria-valuemin={0} 
+                              aria-valuemax={100}
+                            ></div>
+                          </div>
+                        </div>
+                        
+                        <div className="mb-3">
+                          <div className="d-flex justify-content-between mb-1">
+                            <span>Processing</span>
+                            <span>20%</span>
+                          </div>
+                          <div className="progress" style={{ height: '6px' }}>
+                            <div 
+                              className="progress-bar bg-warning" 
+                              role="progressbar" 
+                              style={{ width: '20%' }} 
+                              aria-valuenow={20} 
+                              aria-valuemin={0} 
+                              aria-valuemax={100}
+                            ></div>
+                          </div>
+                        </div>
+                        
+                        <div className="mb-3">
+                          <div className="d-flex justify-content-between mb-1">
+                            <span>Pending</span>
+                            <span>15%</span>
+                          </div>
+                          <div className="progress" style={{ height: '6px' }}>
+                            <div 
+                              className="progress-bar bg-info" 
+                              role="progressbar" 
+                              style={{ width: '15%' }} 
+                              aria-valuenow={15} 
+                              aria-valuemin={0} 
+                              aria-valuemax={100}
+                            ></div>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <div className="d-flex justify-content-between mb-1">
+                            <span>Cancelled</span>
+                            <span>5%</span>
+                          </div>
+                          <div className="progress" style={{ height: '6px' }}>
+                            <div 
+                              className="progress-bar bg-danger" 
+                              role="progressbar" 
+                              style={{ width: '5%' }} 
+                              aria-valuenow={5} 
+                              aria-valuemin={0} 
+                              aria-valuemax={100}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="card mt-3">
+                      <div className="card-body">
+                        <h5 className="card-title">Quick Actions</h5>
+                        <div className="d-grid gap-2">
+                          <button 
+                            className="btn btn-outline-success"
+                            onClick={() => {
+                              handleQuickAction('create-invoice');
+                              setActiveTab('invoices');
+                            }}
+                          >
+                            Create Invoice
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Modal for Quick Actions */}
+          {isModalOpen && (
+            <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+              <div className="modal-dialog modal-lg">
+                <div className="modal-content">
+                  {renderModalContent()}
+                </div>
+              </div>
             </div>
           )}
-          <div className="btn-group">
-            <button 
-              className={`btn btn-sm ${timeRange === 'day' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => handleRangeChange('day')}
-            >
-              Day
-            </button>
-            <button 
-              className={`btn btn-sm ${timeRange === 'week' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => handleRangeChange('week')}
-            >
-              Week
-            </button>
-            <button 
-              className={`btn btn-sm ${timeRange === 'month' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => handleRangeChange('month')}
-            >
-              Month
-            </button>
-            <button 
-              className={`btn btn-sm ${timeRange === 'custom' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => setShowDateRangePicker(true)}
-            >
-              Custom Range
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="card-body">
-        {/* Invoice and Report Alerts */}
-        {showInvoiceAlert && lastCreatedInvoice && (
-          <div className="alert alert-success alert-dismissible fade show" role="alert">
-            <strong>Invoice Created!</strong> Invoice {lastCreatedInvoice.id} for {lastCreatedInvoice.customer} has been generated with a total of ${lastCreatedInvoice.total.toFixed(2)}.
-            <button type="button" className="btn-close" onClick={() => setShowInvoiceAlert(false)}></button>
-          </div>
-        )}
-        
-        {isLoading ? (
-          <div className="text-center py-4">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-            <p className="mt-2">Loading dashboard data...</p>
-          </div>
-        ) : (
-          <>
-            <div className="row">
-              {stats.map((stat, index) => (
-                <div className="col-md-3 mb-4" key={index}>
-                  <div className="card h-100">
-                    <div className="card-body">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <h6 className="text-muted mb-0">{stat.title}</h6>
-                        <div className={`rounded-circle p-2 bg-light text-${stat.change >= 0 ? 'success' : 'danger'}`}>
-                          <i className={`bi bi-${stat.icon}`}></i>
-                        </div>
-                      </div>
-                      <h3 className="mb-0">{stat.title === 'Revenue' ? `$${stat.value.toFixed(2)}` : stat.value}</h3>
-                      <div className={`small mt-2 ${stat.change >= 0 ? 'text-success' : 'text-danger'}`}>
-                        <i className={`bi bi-arrow-${stat.change >= 0 ? 'up' : 'down'}`}></i> {Math.abs(stat.change)}% 
-                        <span className="text-muted ms-1">
-                          {timeRange === 'custom' 
-                            ? `from ${new Date(customDateRange.startDate).toLocaleDateString()} to ${new Date(customDateRange.endDate).toLocaleDateString()}`
-                            : `from previous ${timeRange}`
-                          }
-                        </span>
-                      </div>
-                      {stat.title === 'Revenue' && (
-                        <div className="mt-2 small">
-                          <div className="text-muted d-flex justify-content-between">
-                            <span>Unpaid invoices:</span>
-                            <span>${(calculateRevenue().total - calculateRevenue().current).toFixed(2)}</span>
-                          </div>
-                          <div className="text-muted d-flex justify-content-between">
-                            <span>Uninvoiced orders:</span>
-                            <span>${calculateRevenue().potential.toFixed(2)}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="row mt-2">
-              <div className="col-md-8">
-                <ul className="nav nav-tabs mb-3">
-                  <li className="nav-item">
-                    <button 
-                      className={`nav-link ${activeTab === 'orders' ? 'active' : ''}`} 
-                      onClick={() => setActiveTab('orders')}
-                    >
-                      Orders
-                    </button>
-                  </li>
-                  <li className="nav-item">
-                    <button 
-                      className={`nav-link ${activeTab === 'invoices' ? 'active' : ''}`} 
-                      onClick={() => setActiveTab('invoices')}
-                    >
-                      Invoices
-                    </button>
-                  </li>
-                </ul>
-                
-                {activeTab === 'orders' && (
-                  <>
-                    <h4>Recent Orders</h4>
-                    <div className="table-responsive">
-                      <table className="table table-hover">
-                        <thead>
-                          <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Total</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {recentOrders.map(order => {
-                            // Check if this order already has an invoice (using strict equality)
-                            const hasInvoice = invoices.some(inv => inv.orderId === order.id);
-                            
-                            return (
-                              <tr key={order.id} className="cursor-pointer">
-                                <td>{order.id}</td>
-                                <td>{order.customer}</td>
-                                <td>{order.date}</td>
-                                <td>
-                                  <span className={`badge ${getStatusBadgeClass(order.status)}`}>
-                                    {order.status}
-                                  </span>
-                                </td>
-                                <td>${order.total.toFixed(2)}</td>
-                                <td>
-                                  {order.status !== 'Completed' && order.status !== 'Cancelled' && (
-                                    <button 
-                                      className="btn btn-sm btn-outline-success"
-                                      onClick={() => markOrderComplete(order.id)}
-                                    >
-                                      Mark Complete
-                                    </button>
-                                  )}
-                                  {order.status === 'Completed' && !hasInvoice && (
-                                    <button 
-                                      className="btn btn-sm btn-outline-primary"
-                                      onClick={() => {
-                                        setSelectedOrderForInvoice(order.id);
-                                        handleQuickAction('create-invoice');
-                                      }}
-                                    >
-                                      Create Invoice
-                                    </button>
-                                  )}
-                                  {order.status === 'Completed' && hasInvoice && (
-                                    <span className="badge bg-light text-dark border">
-                                      Invoiced
-                                    </span>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="text-end">
-                      <button 
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={handleViewAllOrders}
-                      >
-                        {showAllOrders ? "Show Less" : "View All Orders"}
-                      </button>
-                    </div>
-                  </>
-                )}
-                
-                {activeTab === 'invoices' && (
-                  <>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <h4>Invoices</h4>
-                      <button 
-                        className="btn btn-sm btn-outline-success"
-                        onClick={() => handleQuickAction('create-invoice')}
-                      >
-                        Create Invoice
-                      </button>
-                    </div>
-                    <div className="table-responsive">
-                      <table className="table table-hover">
-                        <thead>
-                          <tr>
-                            <th>Invoice ID</th>
-                            <th>Order</th>
-                            <th>Customer</th>
-                            <th>Date</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {invoices.map(invoice => (
-                            <tr key={invoice.id}>
-                              <td>{invoice.id}</td>
-                              <td>{invoice.orderId}</td>
-                              <td>{invoice.customer}</td>
-                              <td>{invoice.date}</td>
-                              <td>${invoice.total.toFixed(2)}</td>
-                              <td>
-                                <div className="form-check form-switch">
-                                  <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    checked={invoice.isPaid}
-                                    onChange={() => toggleInvoicePaid(invoice.id)}
-                                    id={`paid-toggle-${invoice.id}`}
-                                  />
-                                  <label className="form-check-label" htmlFor={`paid-toggle-${invoice.id}`}>
-                                    {invoice.isPaid ? 'Paid' : 'Unpaid'}
-                                  </label>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                          {invoices.length === 0 && (
-                            <tr>
-                              <td colSpan={6} className="text-center py-3">
-                                No invoices created yet.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                )}
-              </div>
-              
-              <div className="col-md-4">
-                <h4>Status Overview</h4>
-                <div className="card">
-                  <div className="card-body">
-                    <div className="mb-3">
-                      <div className="d-flex justify-content-between mb-1">
-                        <span>Completed</span>
-                        <span>60%</span>
-                      </div>
-                      <div className="progress" style={{ height: '6px' }}>
-                        <div 
-                          className="progress-bar bg-success" 
-                          role="progressbar" 
-                          style={{ width: '60%' }} 
-                          aria-valuenow={60} 
-                          aria-valuemin={0} 
-                          aria-valuemax={100}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-3">
-                      <div className="d-flex justify-content-between mb-1">
-                        <span>Processing</span>
-                        <span>20%</span>
-                      </div>
-                      <div className="progress" style={{ height: '6px' }}>
-                        <div 
-                          className="progress-bar bg-warning" 
-                          role="progressbar" 
-                          style={{ width: '20%' }} 
-                          aria-valuenow={20} 
-                          aria-valuemin={0} 
-                          aria-valuemax={100}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-3">
-                      <div className="d-flex justify-content-between mb-1">
-                        <span>Pending</span>
-                        <span>15%</span>
-                      </div>
-                      <div className="progress" style={{ height: '6px' }}>
-                        <div 
-                          className="progress-bar bg-info" 
-                          role="progressbar" 
-                          style={{ width: '15%' }} 
-                          aria-valuenow={15} 
-                          aria-valuemin={0} 
-                          aria-valuemax={100}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="d-flex justify-content-between mb-1">
-                        <span>Cancelled</span>
-                        <span>5%</span>
-                      </div>
-                      <div className="progress" style={{ height: '6px' }}>
-                        <div 
-                          className="progress-bar bg-danger" 
-                          role="progressbar" 
-                          style={{ width: '5%' }} 
-                          aria-valuenow={5} 
-                          aria-valuemin={0} 
-                          aria-valuemax={100}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="card mt-3">
-                  <div className="card-body">
-                    <h5 className="card-title">Quick Actions</h5>
-                    <div className="d-grid gap-2">
-                      <button 
-                        className="btn btn-outline-success"
-                        onClick={() => {
-                          handleQuickAction('create-invoice');
-                          setActiveTab('invoices');
-                        }}
-                      >
-                        Create Invoice
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-      
-      {/* Modal for Quick Actions */}
-      {isModalOpen && (
-        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              {renderModalContent()}
-            </div>
-          </div>
-        </div>
+        </>
       )}
     </div>
   );

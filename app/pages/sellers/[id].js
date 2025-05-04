@@ -149,12 +149,26 @@ export default function SellerProfile() {
         
         setLoading(false);
       } else {
-        router.push('/sellers');
+        // Instead of redirecting, set loading to false to show 404 error
+        setLoading(false);
       }
     }
   }, [id, router]);
   
-  if (loading || !seller) {
+  // Show 404 error if seller is not found
+  if (!loading && !seller) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+        <h1 className="text-3xl font-bold text-red-600 mb-2">Seller Not Found</h1>
+        <p className="text-gray-600 mb-6">The seller you are looking for does not exist or has been removed.</p>
+        <Link href="/sellers" className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition">
+          Browse All Sellers
+        </Link>
+      </div>
+    );
+  }
+  
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>

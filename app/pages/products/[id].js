@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 export default function ProductDetail() {
   const router = useRouter();
   const { id } = router.query;
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [size, setSize] = useState('');
+  const [customization, setCustomization] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // Mock products data
@@ -81,13 +86,27 @@ export default function ProductDetail() {
   ];
   
   useEffect(() => {
+    // Check if user is logged in
+    try {
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      
+      if (token && storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (err) {
+      console.error('Error parsing user data:', err);
+    }
+    
+    // In a real app, fetch product data from an API
     if (id) {
-      // In a real app, you would fetch product data from an API
-      const foundProduct = productsData.find(p => p.id == id);
+      const foundProduct = productsData.find(p => p.id === parseInt(id));
       if (foundProduct) {
         setProduct(foundProduct);
+        setLoading(false);
       } else {
-        router.push('/products');
+        // Instead of redirecting, set loading to false to show 404 error
+        setLoading(false);
       }
     }
   }, [id, router]);
@@ -100,14 +119,27 @@ export default function ProductDetail() {
   }, []);
   
   const handleAddToCart = () => {
-    if (!isLoggedIn) {
-      // Redirect to login page with return URL
+    if (!user) {
+      // Redirect to login if user is not authenticated
       router.push(`/login?redirect=/products/${id}`);
       return;
     }
     
-    // Add to cart logic here
-    alert(`Added ${quantity} of ${product.name} to cart!`);
+    // Add to cart logic (in a real app, this would call an API)
+    console.log('Adding to cart:', {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity,
+      size,
+      customization
+    });
+    
+    // Show success message and redirect to cart
+    toast.success('Product added to cart!');
+    setTimeout(() => {
+      router.push('/cart');
+    }, 1500);
   };
   
   const handleBuyNow = () => {
@@ -121,10 +153,15 @@ export default function ProductDetail() {
     router.push(`/checkout?product=${id}&quantity=${quantity}`);
   };
   
-  if (!product) {
+  // Show 404 error if product is not found
+  if (!loading && !product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+        <h1 className="text-3xl font-bold text-red-600 mb-2">Product Not Found</h1>
+        <p className="text-gray-600 mb-6">The product you are looking for does not exist or has been removed.</p>
+        <Link href="/products" className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition">
+          Browse All Products
+        </Link>
       </div>
     );
   }
