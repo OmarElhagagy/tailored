@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './styles.css'; // If any additional styles are needed
 
 // Layouts
@@ -9,8 +9,6 @@ import SellerLayout from './components/SellerLayout';
 
 // Main pages
 import DashboardPage from './components/DashboardPage';
-import ProductsPage from './components/ProductsPage';
-import OrdersPage from './components/OrdersPage';
 import ProfilePage from './components/ProfilePage';
 import SettingsPage from './components/SettingsPage';
 
@@ -36,31 +34,70 @@ import Checkout from './pages/buyer/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
+import Unauthorized from './pages/Unauthorized';
 
 // Protected Route
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './contexts/AuthContext';
 
 function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
+
+  // Helper function to redirect based on authentication and role
+  const getHomeRedirect = () => {
+    if (!isAuthenticated) {
+      return <SellerList />;
+    }
+    
+    // Redirect based on role
+    switch(user?.role) {
+      case 'seller':
+        return <Navigate to="/seller/dashboard" replace />;
+      case 'buyer':
+        return <Navigate to="/dashboard" replace />;
+      case 'admin':
+        return <Navigate to="/admin" replace />;
+      default:
+        return <SellerList />;
+    }
+  };
 
   return (
     <div className="App">
       <Routes>
         {/* Public routes */}
         <Route element={<MainLayout />}>
-          <Route path="/" element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <ProductBrowse />
-          } />
+          {/* Make SellerList the main entry point */}
+          <Route path="/" element={getHomeRedirect()} />
           
-          <Route path="/products" element={<ProductBrowse />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
+          {/* Seller-focused routes */}
           <Route path="/sellers" element={<SellerList />} />
           <Route path="/seller/:id" element={<SellerProfile />} />
           
+          {/* Product routes are now secondary */}
+          <Route path="/seller/:sellerId/product/:productId" element={<ProductDetail />} />
+          <Route path="/products" element={<Navigate to="/sellers" replace />} />
+          <Route path="/product/:id" element={<Navigate to="/sellers" replace />} />
+          
           {/* Auth routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={
+            isAuthenticated ? (
+              <Navigate to={location.state?.from || "/"} replace />
+            ) : (
+              <Login />
+            )
+          } />
+          
+          <Route path="/register" element={
+            isAuthenticated ? (
+              <Navigate to={location.state?.from || "/"} replace />
+            ) : (
+              <Register />
+            )
+          } />
+          
+          <Route path="/unauthorized" element={<Unauthorized />} />
           
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
@@ -83,7 +120,7 @@ function App() {
           <Route element={<SellerLayout />}>
             <Route path="/seller/dashboard" element={<SellerDashboard />} />
             
-            {/* Products routes - specific routes first, then wildcards */}
+            {/* Products routes */}
             <Route path="/seller/products" element={<ProductManager />} />
             <Route path="/seller/products/new" element={<ProductManager />} />
             <Route path="/seller/products/categories" element={<ProductCategories />} />

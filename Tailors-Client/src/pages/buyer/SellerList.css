@@ -1,8 +1,10 @@
 .seller-card {
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #eee;
+  overflow: hidden;
 }
 
-.seller-card:hover {
+.hover-effect:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
@@ -14,15 +16,75 @@
 }
 
 .avatar-placeholder {
-  width: 100%;
-  height: 100%;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #007bff;
   color: white;
-  font-size: 1.5rem;
+  font-size: 24px;
   font-weight: bold;
+}
+
+/* Hero section background alternative if image fails to load */
+.hero-section {
+  background: linear-gradient(45deg, #1e3c72, #2a5298);
+  color: white;
+  border-radius: 0.5rem;
+}
+
+/* Card hover effect */
+.seller-card .btn {
+  transition: all 0.3s ease;
+}
+
+.seller-card:hover .btn-outline-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Search input focus effect */
+.form-control:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Badge styling */
+.badge {
+  padding: 0.5em 0.8em;
+  font-weight: 500;
+}
+
+/* Rating stars alignment */
+.seller-rating {
+  display: flex;
+  align-items: center;
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 767.98px) {
+  .hero-section {
+    padding: 2rem 1rem;
+  }
+  
+  .seller-card-banner {
+    height: 100px !important;
+  }
+}
+
+/* Prevent image stretching */
+.object-fit-cover {
+  object-fit: cover;
+}
+
+/* Ensure consistent card heights */
+.card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.mt-auto {
+  margin-top: auto;
 }
 
 @media (max-width: 768px) {

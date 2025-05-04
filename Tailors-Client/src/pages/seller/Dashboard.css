@@ -1,6 +1,6 @@
 /* Seller Dashboard Styles */
 .seller-dashboard {
-  background-color: #f8f9fa;
+  background-color: var(--color-background);
   min-height: 100vh;
 }
 
@@ -15,23 +15,38 @@
 }
 
 .bg-primary-light {
-  background-color: rgba(13, 110, 253, 0.1);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .bg-success-light {
-  background-color: rgba(25, 135, 84, 0.1);
+  background-color: var(--color-success-light);
+  color: var(--color-success);
 }
 
 .bg-warning-light {
-  background-color: rgba(255, 193, 7, 0.1);
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
 }
 
 .bg-info-light {
-  background-color: rgba(13, 202, 240, 0.1);
+  background-color: var(--color-info-light);
+  color: var(--color-info);
 }
 
 .bg-danger-light {
-  background-color: rgba(220, 53, 69, 0.1);
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.bg-secondary-light {
+  background-color: var(--color-secondary-light);
+  color: var(--color-secondary);
+}
+
+.bg-accent-light {
+  background-color: var(--color-accent-light);
+  color: var(--color-accent);
 }
 
 /* Charts */
@@ -61,6 +76,7 @@
 /* Product Cards */
 .product-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #fff;
 }
 
 .product-card:hover {
@@ -80,7 +96,7 @@
 }
 
 .product-list .product-item:hover {
-  background-color: #f8f9fa;
+  background-color: var(--color-gray-100);
 }
 
 /* Responsive tables */

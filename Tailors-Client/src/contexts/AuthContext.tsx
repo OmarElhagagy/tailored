@@ -43,34 +43,45 @@ interface AuthContextType {
   updateUser: (userData: Partial<User>) => void;
 }
 
-console.log('AuthContext initializing');
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  console.log('AuthProvider rendering');
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Helper function to save auth state to localStorage
+  const saveAuthState = (tokenValue: string, userData: User) => {
+    localStorage.setItem('token', tokenValue);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setToken(tokenValue);
+    setUser(userData);
+    setIsAuthenticated(true);
+  };
+  
+  // Helper function to clear auth state
+  const clearAuthState = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+  };
 
   useEffect(() => {
-    console.log('AuthProvider useEffect running');
-    
     // Check for token in URL parameters (for cross-domain redirects)
     const checkUrlForToken = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const urlToken = urlParams.get('token');
       
       if (urlToken) {
-        console.log('Token found in URL parameters');
         localStorage.setItem('token', urlToken);
         setToken(urlToken);
         
         // Clean up URL
-        const newUrl = window.location.pathname + 
-                      (urlParams.size > 1 ? '?' + urlParams.toString() : '');
+        const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
         return true;
       }
@@ -81,7 +92,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!token) {
       const foundTokenInUrl = checkUrlForToken();
       if (!foundTokenInUrl) {
-        console.log('No token found in URL or localStorage');
         setLoading(false);
         return;
       }
@@ -90,7 +100,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const loadUser = async () => {
       if (token) {
         try {
-          console.log('Attempting to load user with token');
           const res = await axios.get(`${API_URL}/api/auth/me`, {
             headers: {
               Authorization: `Bearer ${token}`
@@ -98,29 +107,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
 
           if (res.data.success) {
-            console.log('User loaded successfully');
             setUser(res.data.data);
             setIsAuthenticated(true);
+            // Save user data to localStorage for consistency with admin app
+            localStorage.setItem('user', JSON.stringify(res.data.data));
           } else {
-            console.log('Failed to load user, clearing token');
-            localStorage.removeItem('token');
-            setToken(null);
-            setIsAuthenticated(false);
+            clearAuthState();
           }
         } catch (err) {
-          console.error('Error loading user:', err);
-          localStorage.removeItem('token');
-          setToken(null);
-          setIsAuthenticated(false);
+          clearAuthState();
         }
-      } else {
-        console.log('No token found, skipping user load');
       }
       setLoading(false);
     };
 
-    loadUser().catch(err => {
-      console.error('Unexpected error in loadUser:', err);
+    loadUser().catch(() => {
+      clearAuthState();
       setLoading(false);
     });
   }, [token]);
@@ -136,16 +138,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (res.data.success) {
-        localStorage.setItem('token', res.data.data.token);
-        setToken(res.data.data.token);
-        setUser(res.data.data.user);
-        setIsAuthenticated(true);
+        saveAuthState(res.data.data.token, res.data.data.user);
       } else {
         setError(res.data.message || 'Login failed');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred during login');
-      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
@@ -159,26 +157,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const res = await axios.post(`${API_URL}/api/auth/register`, userData);
 
       if (res.data.success) {
-        localStorage.setItem('token', res.data.data.token);
-        setToken(res.data.data.token);
-        setUser(res.data.data.user);
-        setIsAuthenticated(true);
+        saveAuthState(res.data.data.token, res.data.data.user);
       } else {
         setError(res.data.message || 'Registration failed');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred during registration');
-      console.error('Registration error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
+    clearAuthState();
   };
 
   const clearError = () => {
@@ -187,7 +178,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateUser = (userData: Partial<User>) => {
     if (user) {
-      setUser({ ...user, ...userData });
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
     }
   };
 

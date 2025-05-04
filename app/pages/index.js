@@ -117,11 +117,15 @@ export default function Home() {
               Connect with skilled tailors and get custom-made clothing that fits your style perfectly.
             </p>
             <div className="mt-10 flex justify-center">
-              <Link href="/sellers" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 md:text-lg">
-                Browse All Tailors
+              <Link href="/sellers" legacyBehavior>
+                <a className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 md:text-lg">
+                  Browse All Tailors
+                </a>
               </Link>
-              <Link href="/products" className="ml-4 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-800 bg-opacity-60 hover:bg-opacity-70 md:text-lg">
-                View Products
+              <Link href="/sellers" legacyBehavior>
+                <a className="ml-4 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-800 bg-opacity-60 hover:bg-opacity-70 md:text-lg">
+                  View Products
+                </a>
               </Link>
             </div>
           </div>
@@ -201,8 +205,10 @@ export default function Home() {
                             </div>
                             <div className="mt-2 flex justify-between">
                               <div>
-                                <h3 className="text-sm text-gray-700 font-medium">
-                                  {product.name}
+                                <h3 className="text-sm text-gray-700">
+                                  <Link href={`/sellers/${seller.id}/product/${product.id}`} legacyBehavior>
+                                    <a>{product.name}</a>
+                                  </Link>
                                 </h3>
                               </div>
                               <p className="text-sm font-medium text-gray-900">${product.price}</p>
@@ -229,9 +235,11 @@ export default function Home() {
           <div className="mt-12 text-center">
             <Link
               href="/sellers"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              legacyBehavior
             >
-              View All Tailors
+              <a className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                View All Tailors
+              </a>
             </Link>
           </div>
         </section>

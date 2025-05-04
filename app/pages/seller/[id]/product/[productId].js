@@ -1,18 +1,45 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { toast } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 
-export default function ProductDetail() {
+export default function SellerProductDetail() {
   const router = useRouter();
-  const { id } = router.query;
+  const { id, productId } = router.query;
   const [product, setProduct] = useState(null);
+  const [seller, setSeller] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [size, setSize] = useState('');
   const [customization, setCustomization] = useState('');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Mock sellers data
+  const mockSellers = [
+    {
+      id: 'premium-tailors',
+      name: 'Premium Tailors',
+      rating: 4.8,
+      reviews: 124,
+      location: 'New York, NY',
+      phone: '+1 (555) 123-4567',
+      bio: 'We specialize in high-quality tailored suits with over 20 years of experience in the industry.',
+      image: 'https://via.placeholder.com/150',
+      specialties: ['Men\'s Suits', 'Formal Wear', 'Business Attire'],
+    },
+    {
+      id: 'fashion-studio',
+      name: 'Fashion Studio',
+      rating: 4.6,
+      reviews: 87,
+      location: 'Los Angeles, CA',
+      phone: '+1 (555) 987-6543',
+      bio: 'We create unique, fashion-forward designs for all occasions.',
+      image: 'https://via.placeholder.com/150',
+      specialties: ['Women\'s Dresses', 'Evening Wear', 'Custom Design'],
+    }
+  ];
   
   // Mock products data
   const productsData = [
@@ -27,16 +54,7 @@ export default function ProductDetail() {
         'https://via.placeholder.com/600x400',
         'https://via.placeholder.com/600x400'
       ],
-      seller: 'Premium Tailors',
-      sellerInfo: {
-        id: 'premium-tailors',
-        name: 'Premium Tailors',
-        rating: 4.8,
-        reviews: 124,
-        location: 'New York, NY',
-        phone: '+1 (555) 123-4567',
-        bio: 'We specialize in high-quality tailored suits with over 20 years of experience in the industry.'
-      },
+      sellerId: 'premium-tailors',
       category: "Men's Suits",
       attributes: {
         material: 'Wool Blend',
@@ -60,16 +78,7 @@ export default function ProductDetail() {
         'https://via.placeholder.com/600x400',
         'https://via.placeholder.com/600x400'
       ],
-      seller: 'Fashion Studio',
-      sellerInfo: {
-        id: 'fashion-studio',
-        name: 'Fashion Studio',
-        rating: 4.6,
-        reviews: 87,
-        location: 'Los Angeles, CA',
-        phone: '+1 (555) 987-6543',
-        bio: 'We create unique, fashion-forward designs for all occasions.'
-      },
+      sellerId: 'fashion-studio',
       category: "Women's Dresses",
       attributes: {
         material: 'Satin, Lace',
@@ -82,7 +91,54 @@ export default function ProductDetail() {
         { id: 2, user: 'Sophia R.', rating: 4, comment: 'Gorgeous design and comfortable to wear.', date: '2023-05-28' }
       ]
     },
-    // Remaining mock data for other products...
+    { 
+      id: 7, 
+      name: 'Wedding Dress', 
+      price: 599.99, 
+      description: 'Stunning wedding dress with intricate lace details and a flowing train. Perfect for your special day.',
+      image: 'https://via.placeholder.com/600x400', 
+      images: [
+        'https://via.placeholder.com/600x400',
+        'https://via.placeholder.com/600x400',
+        'https://via.placeholder.com/600x400'
+      ],
+      sellerId: 'fashion-studio',
+      category: "Wedding Attire",
+      attributes: {
+        material: 'Silk, Lace',
+        care: 'Professional Clean Only',
+        style: 'Formal'
+      },
+      inStock: true,
+      reviews: [
+        { id: 1, user: 'Jessica M.', rating: 5, comment: 'Absolutely perfect for my wedding day!', date: '2023-07-15' },
+        { id: 2, user: 'Amanda K.', rating: 5, comment: 'The quality and craftsmanship are exceptional.', date: '2023-06-28' }
+      ]
+    },
+    { 
+      id: 9, 
+      name: 'Business Suit', 
+      price: 349.99, 
+      description: 'Professional business suit for the modern executive. Tailored for comfort and style in the workplace.',
+      image: 'https://via.placeholder.com/600x400', 
+      images: [
+        'https://via.placeholder.com/600x400',
+        'https://via.placeholder.com/600x400',
+        'https://via.placeholder.com/600x400'
+      ],
+      sellerId: 'premium-tailors',
+      category: "Men's Suits",
+      attributes: {
+        material: 'Wool Blend',
+        care: 'Dry Clean Only',
+        style: 'Business'
+      },
+      inStock: true,
+      reviews: [
+        { id: 1, user: 'David R.', rating: 4, comment: 'Great quality and perfect for daily office wear.', date: '2023-04-20' },
+        { id: 2, user: 'Thomas G.', rating: 5, comment: 'Excellent fit and very comfortable.', date: '2023-03-15' }
+      ]
+    }
   ];
   
   useEffect(() => {
@@ -98,27 +154,27 @@ export default function ProductDetail() {
       console.error('Error parsing user data:', err);
     }
     
-    // In a real app, fetch product data from an API
-    if (id) {
-      // Compare as strings or try both string and number comparison
+    // Only proceed if we have both ID parameters
+    if (id && productId) {
+      // Get seller info
+      const foundSeller = mockSellers.find(s => s.id === id);
+      
+      // Get product info - make sure to handle both string and number comparisons
       const foundProduct = productsData.find(p => 
-        p.id.toString() === id.toString() || 
-        p.id === parseInt(id)
+        (p.id.toString() === productId.toString() || p.id === parseInt(productId)) && 
+        p.sellerId === id
       );
-      if (foundProduct) {
+      
+      if (foundSeller && foundProduct) {
+        setSeller(foundSeller);
         setProduct(foundProduct);
         setLoading(false);
-        
-        // Optional: Redirect to the new seller-based product route if seller info is available
-        if (foundProduct.sellerInfo && foundProduct.sellerInfo.id) {
-          router.replace(`/seller/${foundProduct.sellerInfo.id}/product/${foundProduct.id}`);
-        }
       } else {
-        // Instead of redirecting, set loading to false to show 404 error
+        // Set loading to false to show 404 error
         setLoading(false);
       }
     }
-  }, [id, router]);
+  }, [id, productId, router]);
   
   // Check if user is logged in
   useEffect(() => {
@@ -130,7 +186,7 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     if (!user) {
       // Redirect to login if user is not authenticated
-      router.push(`/login?redirect=/products/${id}`);
+      router.push(`/login?redirect=/seller/${id}/product/${productId}`);
       return;
     }
     
@@ -141,7 +197,8 @@ export default function ProductDetail() {
       price: product.price,
       quantity,
       size,
-      customization
+      customization,
+      sellerId: id
     });
     
     // Show success message and redirect to cart
@@ -154,19 +211,22 @@ export default function ProductDetail() {
   const handleBuyNow = () => {
     if (!isLoggedIn) {
       // Redirect to login page with return URL
-      router.push(`/login?redirect=/checkout?product=${id}&quantity=${quantity}`);
+      router.push(`/login?redirect=/checkout?product=${productId}&seller=${id}&quantity=${quantity}`);
       return;
     }
     
     // Proceed to checkout
-    router.push(`/checkout?product=${id}&quantity=${quantity}`);
+    router.push(`/checkout?product=${productId}&seller=${id}&quantity=${quantity}`);
   };
   
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Add the Toaster component to show notifications */}
+      <Toaster position="top-center" />
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Only render the breadcrumb when product is available */}
-        {product && (
+        {/* Only render the breadcrumb when product and seller are available */}
+        {product && seller && (
           <nav className="flex mb-8" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2">
               <li>
@@ -176,8 +236,14 @@ export default function ProductDetail() {
               </li>
               <li className="flex items-center">
                 <span className="mx-2 text-gray-400">/</span>
-                <Link href="/products" legacyBehavior>
-                  <a className="text-gray-500 hover:text-gray-700">Products</a>
+                <Link href="/sellers" legacyBehavior>
+                  <a className="text-gray-500 hover:text-gray-700">Sellers</a>
+                </Link>
+              </li>
+              <li className="flex items-center">
+                <span className="mx-2 text-gray-400">/</span>
+                <Link href={`/sellers/${id}`} legacyBehavior>
+                  <a className="text-gray-500 hover:text-gray-700">{seller.name}</a>
                 </Link>
               </li>
               <li className="flex items-center">
@@ -193,7 +259,7 @@ export default function ProductDetail() {
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
-        ) : product ? (
+        ) : product && seller ? (
           <>
             <div className="lg:grid lg:grid-cols-2 lg:gap-x-8">
               {/* Product images */}
@@ -235,7 +301,7 @@ export default function ProductDetail() {
                         <svg
                           key={rating}
                           className={`h-5 w-5 ${
-                            product.sellerInfo.rating > rating ? 'text-yellow-400' : 'text-gray-300'
+                            seller.rating > rating ? 'text-yellow-400' : 'text-gray-300'
                           }`}
                           fill="currentColor"
                           viewBox="0 0 20 20"
@@ -245,7 +311,7 @@ export default function ProductDetail() {
                       ))}
                     </div>
                     <p className="ml-3 text-sm text-gray-700">
-                      {product.sellerInfo.rating} ({product.sellerInfo.reviews} reviews)
+                      {seller.rating} ({seller.reviews} reviews)
                     </p>
                   </div>
                 </div>
@@ -347,26 +413,24 @@ export default function ProductDetail() {
               <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                    {product.sellerInfo.name.charAt(0)}
+                    {seller.name.charAt(0)}
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">{product.sellerInfo.name}</h3>
-                    <p className="text-sm text-gray-500">{product.sellerInfo.location}</p>
+                    <h3 className="text-lg font-medium text-gray-900">{seller.name}</h3>
+                    <p className="text-sm text-gray-500">{seller.location}</p>
                   </div>
                   <div className="ml-auto">
                     <Link
-                      href={`/sellers/${product.sellerInfo.id}`}
-                      legacyBehavior
+                      href={`/sellers/${seller.id}`}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
-                      <a className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        View Profile
-                      </a>
+                      View Full Profile
                     </Link>
                   </div>
                 </div>
                 
                 <div className="mt-4">
-                  <p className="text-gray-700">{product.sellerInfo.bio}</p>
+                  <p className="text-gray-700">{seller.bio}</p>
                 </div>
                 
                 <div className="mt-6 border-t border-gray-200 pt-4">
@@ -376,7 +440,7 @@ export default function ProductDetail() {
                         <svg
                           key={rating}
                           className={`h-5 w-5 ${
-                            product.sellerInfo.rating > rating ? 'text-yellow-400' : 'text-gray-300'
+                            seller.rating > rating ? 'text-yellow-400' : 'text-gray-300'
                           }`}
                           fill="currentColor"
                           viewBox="0 0 20 20"
@@ -386,13 +450,13 @@ export default function ProductDetail() {
                       ))}
                     </div>
                     <p className="ml-3 text-sm text-gray-700">
-                      {product.sellerInfo.rating} ({product.sellerInfo.reviews} reviews)
+                      {seller.rating} ({seller.reviews} reviews)
                     </p>
                   </div>
                   
                   <div className="mt-4">
                     <p className="text-sm text-gray-500">
-                      <span className="font-medium text-gray-900">Phone:</span> {product.sellerInfo.phone}
+                      <span className="font-medium text-gray-900">Phone:</span> {seller.phone}
                     </p>
                   </div>
                 </div>
@@ -437,9 +501,16 @@ export default function ProductDetail() {
           <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
             <h1 className="text-3xl font-bold text-red-600 mb-2">Product Not Found</h1>
             <p className="text-gray-600 mb-6">The product you are looking for does not exist or has been removed.</p>
-            <Link href="/products" className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition">
-              Browse All Products
-            </Link>
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+              <Link href="/sellers" className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition text-center">
+                Browse All Sellers
+              </Link>
+              {id && (
+                <Link href={`/sellers/${id}`} className="px-4 py-2 rounded-md bg-gray-100 text-gray-800 font-medium hover:bg-gray-200 transition text-center">
+                  Return to Seller Profile
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </main>

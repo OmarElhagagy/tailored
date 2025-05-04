@@ -6,13 +6,10 @@ import { AuthProvider } from './contexts/AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 
-console.log('Main script executing - checking if root element exists:', !!document.getElementById('root'));
-
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  console.error('Root element not found in the document!');
+  throw new Error('Root element not found in the document!');
 } else {
-  console.log('Root element found, attempting to render app');
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
       <AuthProvider>

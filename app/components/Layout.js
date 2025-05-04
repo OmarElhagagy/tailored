@@ -49,28 +49,50 @@ export default function Layout({ children }) {
     router.push('/');
   };
   
+  // Add direct navigation function for full page reloads
+  const handleNavigation = (path) => {
+    window.location.href = path;
+    setDropdownOpen(false);
+  };
+  
   return (
     <div className="flex flex-col min-h-screen">
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <Link href="/" className="text-2xl font-bold text-gray-900 flex items-center">
+              <a 
+                href="#" 
+                onClick={(e) => { e.preventDefault(); handleNavigation('/'); }} 
+                className="text-2xl font-bold text-gray-900 flex items-center"
+              >
                 <span className="text-blue-600">Tailors</span>
                 <span className="ml-1">Platform</span>
-              </Link>
+              </a>
               
               <nav className="hidden md:flex ml-10 space-x-8">
-                <Link href="/products" className={`px-3 py-2 text-sm font-medium ${router.pathname === '/products' || router.pathname.startsWith('/products/') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}>
+                <a 
+                  href="#" 
+                  onClick={(e) => { e.preventDefault(); handleNavigation('/products'); }}
+                  className={`px-3 py-2 text-sm font-medium ${router.pathname === '/products' || router.pathname.startsWith('/products/') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}
+                >
                   Products
-                </Link>
-                <Link href="/sellers" className={`px-3 py-2 text-sm font-medium ${router.pathname === '/sellers' || router.pathname.startsWith('/sellers/') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}>
+                </a>
+                <a 
+                  href="#" 
+                  onClick={(e) => { e.preventDefault(); handleNavigation('/sellers'); }}
+                  className={`px-3 py-2 text-sm font-medium ${router.pathname === '/sellers' || router.pathname.startsWith('/sellers/') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}
+                >
                   Find Tailors
-                </Link>
+                </a>
                 {user && (
-                  <Link href="/cart" className={`px-3 py-2 text-sm font-medium ${router.pathname === '/cart' ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}>
+                  <a 
+                    href="#" 
+                    onClick={(e) => { e.preventDefault(); handleNavigation('/cart'); }}
+                    className={`px-3 py-2 text-sm font-medium ${router.pathname === '/cart' ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}
+                  >
                     Cart
-                  </Link>
+                  </a>
                 )}
               </nav>
             </div>
@@ -107,36 +129,36 @@ export default function Layout({ children }) {
                             {user.role === 'seller' ? 'Seller Account' : 'Buyer Account'}
                           </p>
                         </div>
-                        <Link 
-                          href="/dashboard" 
+                        <a 
+                          href="#"
+                          onClick={(e) => { e.preventDefault(); handleNavigation('/dashboard'); }}
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setDropdownOpen(false)}
                         >
                           {user.role === 'seller' ? 'Seller Dashboard' : 'My Dashboard'}
-                        </Link>
+                        </a>
                         {user.role === 'seller' && (
-                          <Link 
-                            href="/dashboard/products" 
+                          <a 
+                            href="#"
+                            onClick={(e) => { e.preventDefault(); handleNavigation('/dashboard/products'); }}
                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            onClick={() => setDropdownOpen(false)}
                           >
                             Manage Products
-                          </Link>
+                          </a>
                         )}
-                        <Link 
-                          href="/dashboard/orders" 
+                        <a 
+                          href="#"
+                          onClick={(e) => { e.preventDefault(); handleNavigation('/dashboard/orders'); }}
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setDropdownOpen(false)}
                         >
                           {user.role === 'seller' ? 'Manage Orders' : 'My Orders'}
-                        </Link>
-                        <Link 
-                          href="/dashboard/profile" 
+                        </a>
+                        <a 
+                          href="#"
+                          onClick={(e) => { e.preventDefault(); handleNavigation('/dashboard/profile'); }}
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setDropdownOpen(false)}
                         >
                           Profile Settings
-                        </Link>
+                        </a>
                         <button
                           onClick={handleLogout}
                           className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
@@ -149,12 +171,20 @@ export default function Layout({ children }) {
                 </div>
               ) : (
                 <div className="flex space-x-2">
-                  <Link href="/login" className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition">
+                  <a 
+                    href="#" 
+                    onClick={(e) => { e.preventDefault(); handleNavigation('/login'); }}
+                    className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition"
+                  >
                     Sign In
-                  </Link>
-                  <Link href="/register" className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition">
+                  </a>
+                  <a 
+                    href="#" 
+                    onClick={(e) => { e.preventDefault(); handleNavigation('/register'); }}
+                    className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+                  >
                     Register
-                  </Link>
+                  </a>
                 </div>
               )}
               
@@ -185,13 +215,17 @@ export default function Layout({ children }) {
                    router.pathname === '/dashboard/profile' ? 'Profile' : ''}
                 </span>
               </div>
-              <Link href="/" className="text-sm text-blue-600 hover:text-blue-800 flex items-center">
-                <span>Back to Website</span>
+              <a 
+                href="#" 
+                onClick={(e) => { e.preventDefault(); handleNavigation('/'); }}
+                className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+              >
+                Back to Website
                 <svg className="ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
                   <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
-              </Link>
+              </a>
             </div>
           </div>
         )}
@@ -232,31 +266,61 @@ export default function Layout({ children }) {
               <div>
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Shop</h3>
                 <ul className="mt-4 space-y-2">
-                  <li><Link href="/products" className="text-gray-300 hover:text-white">Products</Link></li>
-                  <li><Link href="/sellers" className="text-gray-300 hover:text-white">Find Tailors</Link></li>
+                  <li>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigation('/products'); }} className="text-gray-300 hover:text-white">
+                      Products
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigation('/sellers'); }} className="text-gray-300 hover:text-white">
+                      Find Tailors
+                    </a>
+                  </li>
                   {user?.role === 'seller' && (
-                    <li><Link href="/dashboard" className="text-gray-300 hover:text-white">Seller Dashboard</Link></li>
+                    <li>
+                      <a href="#" onClick={(e) => { e.preventDefault(); handleNavigation('/dashboard'); }} className="text-gray-300 hover:text-white">
+                        Seller Dashboard
+                      </a>
+                    </li>
                   )}
                 </ul>
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Support</h3>
                 <ul className="mt-4 space-y-2">
-                  <li><Link href="/help" className="text-gray-300 hover:text-white">Help Center</Link></li>
-                  <li><Link href="/contact" className="text-gray-300 hover:text-white">Contact Us</Link></li>
+                  <li>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigation('/help'); }} className="text-gray-300 hover:text-white">
+                      Help Center
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigation('/contact'); }} className="text-gray-300 hover:text-white">
+                      Contact Us
+                    </a>
+                  </li>
                 </ul>
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Legal</h3>
                 <ul className="mt-4 space-y-2">
-                  <li><Link href="/privacy" className="text-gray-300 hover:text-white">Privacy Policy</Link></li>
-                  <li><Link href="/terms" className="text-gray-300 hover:text-white">Terms of Service</Link></li>
+                  <li>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigation('/terms'); }} className="text-gray-300 hover:text-white">
+                      Terms of Service
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigation('/privacy'); }} className="text-gray-300 hover:text-white">
+                      Privacy Policy
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} Tailors Platform. All rights reserved.</p>
+          <div className="mt-8 border-t border-gray-700 pt-8 md:flex md:items-center md:justify-between">
+            <div className="flex space-x-6 md:order-2">
+              <span className="text-sm text-gray-400">&copy; 2023 Tailors Platform. All rights reserved.</span>
+            </div>
           </div>
         </div>
       </footer>

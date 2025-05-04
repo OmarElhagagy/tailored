@@ -6,7 +6,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState('overview');
   const [sellerView, setSellerView] = useState('dashboard');
   const [inventoryThreshold, setInventoryThreshold] = useState(5); // Default low inventory threshold
   const [filterOrderStatus, setFilterOrderStatus] = useState('all');
@@ -194,6 +194,13 @@ export default function Dashboard() {
     conversion: 3.2
   };
   
+  // New buyer-specific stats
+  const buyerStats = {
+    orders: 28,
+    saved: 12,
+    recent: 5
+  };
+  
   // Mock recent orders
   const recentOrders = [
     {
@@ -354,6 +361,12 @@ export default function Dashboard() {
     }
   }, [router]);
   
+  // Handle navigation with hard redirects
+  const handleNavigation = (path) => {
+    // Use window.location.href for a full page reload/navigation
+    window.location.href = path;
+  };
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -377,15 +390,19 @@ export default function Dashboard() {
                 <p className="mt-1 text-sm text-gray-500">Manage your products, orders, and seller profile</p>
               </div>
               <div className="mt-4 md:mt-0">
-                <Link
+                <a
                   href={`/sellers/${user.sellerId || 'premium-tailors'}`}
                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigation(`/sellers/${user.sellerId || 'premium-tailors'}`);
+                  }}
                 >
                   <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clipRule="evenodd" />
                   </svg>
                   View Your Public Profile
-                </Link>
+                </a>
               </div>
             </div>
           </div>
@@ -416,9 +433,16 @@ export default function Dashboard() {
               </div>
               <div className="bg-gray-50 px-5 py-3">
                 <div className="text-sm">
-                  <Link href="/dashboard/sales" className="font-medium text-blue-600 hover:text-blue-500">
+                  <a 
+                    href="/dashboard/sales" 
+                    className="font-medium text-blue-600 hover:text-blue-500"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavigation('/dashboard/sales');
+                    }}
+                  >
                     View sales report
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>
@@ -448,9 +472,16 @@ export default function Dashboard() {
               </div>
               <div className="bg-gray-50 px-5 py-3">
                 <div className="text-sm">
-                  <Link href="/dashboard/orders" className="font-medium text-blue-600 hover:text-blue-500">
+                  <a 
+                    href="/dashboard/orders" 
+                    className="font-medium text-blue-600 hover:text-blue-500"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavigation('/dashboard/orders');
+                    }}
+                  >
                     Manage orders
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>
@@ -480,9 +511,16 @@ export default function Dashboard() {
               </div>
               <div className="bg-gray-50 px-5 py-3">
                 <div className="text-sm">
-                  <Link href="/dashboard/products" className="font-medium text-blue-600 hover:text-blue-500">
+                  <a 
+                    href="/dashboard/products" 
+                    className="font-medium text-blue-600 hover:text-blue-500"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavigation('/dashboard/products');
+                    }}
+                  >
                     Manage products
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>
@@ -492,16 +530,30 @@ export default function Dashboard() {
           <div className="mt-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-medium text-gray-900">Recent Orders</h3>
-              <Link href="/dashboard/orders" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+              <a 
+                href="/dashboard/orders" 
+                className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavigation('/dashboard/orders');
+                }}
+              >
                 View all
-              </Link>
+              </a>
             </div>
             
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
               <ul className="divide-y divide-gray-200">
                 {orders.slice(0, 3).map((order) => (
                   <li key={order.id}>
-                    <Link href={`/dashboard/orders/${order.id}`} className="block hover:bg-gray-50">
+                    <a 
+                      href={`/dashboard/orders/${order.id}`} 
+                      className="block hover:bg-gray-50"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation(`/dashboard/orders/${order.id}`);
+                      }}
+                    >
                       <div className="px-4 py-4 sm:px-6">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
@@ -535,7 +587,7 @@ export default function Dashboard() {
                           </div>
                         </div>
                       </div>
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -546,9 +598,16 @@ export default function Dashboard() {
           <div className="mt-12">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-medium text-gray-900">Product Management</h3>
-              <Link href="/dashboard/products" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+              <a 
+                href="/dashboard/products" 
+                className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavigation('/dashboard/products');
+                }}
+              >
                 View all products
-              </Link>
+              </a>
             </div>
             
             <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
@@ -560,15 +619,19 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <div className="mt-4 md:mt-0">
-                  <Link 
+                  <a 
                     href="/dashboard/products/new" 
                     className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavigation('/dashboard/products/new');
+                    }}
                   >
                     <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                     </svg>
                     Add New Product
-                  </Link>
+                  </a>
                 </div>
               </div>
               
@@ -619,9 +682,16 @@ export default function Dashboard() {
                       <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs">5</span>
                     </div>
                     <div className="mt-3">
-                      <Link href="/dashboard/products/categories" className="text-xs font-medium text-blue-600 hover:text-blue-500">
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavigation('/dashboard/products/categories');
+                        }}
+                        className="text-xs font-medium text-blue-600 hover:text-blue-500"
+                      >
                         Manage Categories
-                      </Link>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -642,9 +712,16 @@ export default function Dashboard() {
                       <span className="font-medium">4.2%</span>
                     </div>
                     <div className="mt-3">
-                      <Link href="/dashboard/analytics" className="text-xs font-medium text-blue-600 hover:text-blue-500">
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavigation('/dashboard/analytics');
+                        }}
+                        className="text-xs font-medium text-blue-600 hover:text-blue-500"
+                      >
                         View Analytics
-                      </Link>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -668,15 +745,19 @@ export default function Dashboard() {
                 <p className="mt-1 text-sm text-gray-500">Manage your orders and profile information</p>
               </div>
               <div className="mt-4 md:mt-0">
-                <Link
+                <a
                   href="/"
                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigation('/');
+                  }}
                 >
                   <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 100-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>
                   Continue Shopping
-                </Link>
+                </a>
               </div>
             </div>
           </div>
@@ -695,7 +776,10 @@ export default function Dashboard() {
                   My Orders
                 </button>
                 <button
-                  onClick={() => setActiveTab('saved')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigation('/dashboard/saved-items');
+                  }}
                   className={`${
                     activeTab === 'saved'
                       ? 'border-blue-500 text-blue-600'
@@ -759,9 +843,16 @@ export default function Dashboard() {
                                 </div>
                               </div>
                               <div className="mt-2">
-                                <Link href={`/orders/${order.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                                <a
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleNavigation(`/orders/${order.id}`);
+                                  }}
+                                  className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                                >
                                   View Order Details
-                                </Link>
+                                </a>
                               </div>
                             </div>
                           </div>
@@ -778,9 +869,16 @@ export default function Dashboard() {
                         You haven't placed any orders yet.
                       </p>
                       <div className="mt-6">
-                        <Link href="/products" className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleNavigation('/products');
+                          }}
+                          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
                           Browse Products
-                        </Link>
+                        </a>
                       </div>
                     </div>
                   )}
@@ -810,9 +908,16 @@ export default function Dashboard() {
                             <div>
                               <div className="-mt-px flex divide-x divide-gray-200">
                                 <div className="w-0 flex-1 flex">
-                                  <Link href={`/products/${item.id}`} className="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500">
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleNavigation(`/sellers/${item.sellerId || 'premium-tailors'}/product/${item.id}`);
+                                    }}
+                                    className="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500"
+                                  >
                                     <span className="ml-3">View</span>
-                                  </Link>
+                                  </a>
                                 </div>
                                 <div className="-ml-px w-0 flex-1 flex">
                                   <button className="relative w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-red-700 font-medium border border-transparent rounded-br-lg hover:text-red-500">
@@ -834,9 +939,16 @@ export default function Dashboard() {
                           You haven't saved any items yet.
                         </p>
                         <div className="mt-6">
-                          <Link href="/products" className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleNavigation('/sellers');
+                            }}
+                            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          >
                             Browse Products
-                          </Link>
+                          </a>
                         </div>
                       </div>
                     )}
@@ -887,7 +999,9 @@ export default function Dashboard() {
                             Account type
                           </dt>
                           <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            Buyer
+                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                              Buyer Account
+                            </span>
                           </dd>
                         </div>
                       </dl>
@@ -895,9 +1009,16 @@ export default function Dashboard() {
                   </div>
                   
                   <div className="mt-6">
-                    <Link href="/profile/edit" className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation('/profile/edit');
+                      }}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
                       Edit Profile
-                    </Link>
+                    </a>
                   </div>
                 </div>
               )}
@@ -1354,322 +1475,447 @@ export default function Dashboard() {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="md:flex md:items-center md:justify-between mb-6">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-              Dashboard
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Welcome back, {user?.name || 'User'}! Here's what's happening with your account.
-            </p>
-          </div>
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {user?.role === 'seller' ? 'Seller Dashboard' : 'Buyer Dashboard'}
+          </h1>
+          <a 
+            href="/" 
+            className="text-sm font-medium text-blue-600 hover:text-blue-500"
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavigation('/');
+            }}
+          >
+            Back to Website
+          </a>
         </div>
-        
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                Revenue (30 days)
-              </dt>
-              <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                ${stats.revenue.toFixed(2)}
-              </dd>
-              <div className="mt-2 flex items-center text-sm text-green-600">
-                <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                <span>{parseFloat(percentageChange) > 0 ? `+${percentageChange}%` : `${percentageChange}%`}</span>
-              </div>
-            </div>
-            <div className="bg-gray-50 px-4 py-3 sm:px-6">
-              <div className="text-sm">
-                <Link href="/dashboard/sales" className="font-medium text-blue-600 hover:text-blue-500">
-                  View sales details
-                </Link>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                Orders (30 days)
-              </dt>
-              <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                {stats.orders}
-              </dd>
-              <div className="mt-2 flex items-center text-sm text-green-600">
-                <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                <span>12%</span>
-              </div>
-            </div>
-            <div className="bg-gray-50 px-4 py-3 sm:px-6">
-              <div className="text-sm">
-                <Link href="/dashboard/orders" className="font-medium text-blue-600 hover:text-blue-500">
-                  View all orders
-                </Link>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                Visitors (30 days)
-              </dt>
-              <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                {stats.visitors}
-              </dd>
-              <div className="mt-2 flex items-center text-sm text-green-600">
-                <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                <span>15.3% from last month</span>
-              </div>
-            </div>
-            <div className="bg-gray-50 px-4 py-3 sm:px-6">
-              <div className="text-sm">
-                <Link href="#" className="font-medium text-blue-600 hover:text-blue-500">
-                  View analytics
-                </Link>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                Conversion Rate
-              </dt>
-              <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                {stats.conversion}%
-              </dd>
-              <div className="mt-2 flex items-center text-sm text-red-600">
-                <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span>0.8%</span>
-              </div>
-            </div>
-            <div className="bg-gray-50 px-4 py-3 sm:px-6">
-              <div className="text-sm">
-                <Link href="#" className="font-medium text-blue-600 hover:text-blue-500">
-                  View conversion details
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Main Dashboard Content */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Quick Actions */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Quick Actions
-              </h3>
-              <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                {user?.role === 'seller' && (
-                  <>
-                    <div>
-                      <Link href="/dashboard/products/new" className="inline-flex items-center justify-center w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Add New Product
-                      </Link>
-                    </div>
-                    <div>
-                      <Link href="/dashboard/products" className="inline-flex items-center justify-center w-full px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Manage Products
-                      </Link>
-                    </div>
-                    <div>
-                      <Link href="/dashboard/orders" className="inline-flex items-center justify-center w-full px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        View Orders
-                      </Link>
-                    </div>
-                    <div>
-                      <Link href="/dashboard/sales" className="inline-flex items-center justify-center w-full px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Sales Reports
-                      </Link>
-                    </div>
-                  </>
-                )}
-                {user?.role === 'buyer' && (
-                  <>
-                    <div>
-                      <Link href="/products" className="inline-flex items-center justify-center w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Shop Now
-                      </Link>
-                    </div>
-                    <div>
-                      <Link href="/dashboard/orders" className="inline-flex items-center justify-center w-full px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        My Orders
-                      </Link>
-                    </div>
-                    <div>
-                      <Link href="/sellers" className="inline-flex items-center justify-center w-full px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Browse Tailors
-                      </Link>
-                    </div>
-                    <div>
-                      <Link href="/dashboard/profile" className="inline-flex items-center justify-center w-full px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Edit Profile
-                      </Link>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-          
-          {/* Recent Activity */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Recent Activity
-              </h3>
-            </div>
-            <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-              <dl className="sm:divide-y sm:divide-gray-200">
-                {recentOrders.map((order, idx) => (
-                  <div key={order.id} className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      {order.date}
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      <div className="flex justify-between">
-                        <span>
-                          Order <Link href={`/dashboard/orders/${order.id}`} className="text-blue-600 hover:text-blue-500">{order.id}</Link> - {order.product}
-                        </span>
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                          ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 
-                            order.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
-                            order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'}`}>
-                          {order.status}
-                        </span>
-                      </div>
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-            <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
-              <Link href="/dashboard/orders" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-                View all
-              </Link>
-            </div>
-          </div>
-          
-          {/* Low Stock Alerts - Only show if user is a seller */}
-          {user?.role === 'seller' && (
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Low Stock Alerts
-                </h3>
-              </div>
-              {lowStockItems.length > 0 ? (
-                <div className="border-t border-gray-200">
-                  <ul className="divide-y divide-gray-200">
-                    {lowStockItems.map(item => (
-                      <li key={item.id} className="px-4 py-4 sm:px-6">
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                          <div className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                            {item.stock} left
-                          </div>
-                        </div>
-                        <div className="mt-2">
-                          <Link href={`/dashboard/products/${item.id}`} className="text-sm text-blue-600 hover:text-blue-500">
-                            Update stock
-                          </Link>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <div className="border-t border-gray-200 px-4 py-5 sm:px-6 text-center">
-                  <p className="text-sm text-gray-500">No low stock items at the moment.</p>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* Profile Overview */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Account Information
-              </h3>
-              <Link href="/dashboard/profile" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-                Edit
-              </Link>
-            </div>
-            <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-              <dl className="sm:divide-y sm:divide-gray-200">
-                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Full name</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {user?.name || 'Not provided'}
-                  </dd>
-                </div>
-                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Email address</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {user?.email || 'Not provided'}
-                  </dd>
-                </div>
-                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Phone number</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {user?.phone || 'Not provided'}
-                  </dd>
-                </div>
-                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Account type</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      user?.role === 'seller' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {user?.role === 'seller' ? 'Seller Account' : 'Buyer Account'}
-                    </span>
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        </div>
-      </main>
+      </header>
       
-      {/* Toast Notification */}
-      {showToast && (
-        <div className={`fixed bottom-5 right-5 p-4 rounded-md shadow-lg ${
-          toastType === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
-          toastType === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
-          'bg-blue-50 text-blue-800 border border-blue-200'
-        }`}>
-          <div className="flex items-center">
-            {toastType === 'success' && (
-              <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            )}
-            {toastType === 'error' && (
-              <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293-1.293a1 1 0 00-1.414-1.414L10 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            )}
-            <span>{toastMessage}</span>
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {/* Navigation */}
+        <nav className="bg-white shadow-sm rounded-lg mb-6">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-16">
+              <div className="flex">
+                <div className="flex-shrink-0 flex items-center">
+                  <h2 className="text-lg font-medium text-gray-900">Dashboard</h2>
+                </div>
+                <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+                  <a 
+                    href="/dashboard"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveTab('overview');
+                      handleNavigation('/dashboard');
+                    }}
+                    className={`${
+                      activeTab === 'overview' 
+                        ? 'border-blue-500 text-gray-900' 
+                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  >
+                    Overview
+                  </a>
+                  <a 
+                    href="/dashboard/orders"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveTab('orders');
+                      handleNavigation('/dashboard/orders');
+                    }}
+                    className={`${
+                      activeTab === 'orders' 
+                        ? 'border-blue-500 text-gray-900' 
+                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  >
+                    Orders
+                  </a>
+                  <a 
+                    href="/dashboard/profile"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveTab('profile');
+                      handleNavigation('/dashboard/profile');
+                    }}
+                    className={`${
+                      activeTab === 'profile' 
+                        ? 'border-blue-500 text-gray-900' 
+                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  >
+                    Profile
+                  </a>
+                  {user?.role === 'seller' && (
+                    <>
+                      <a 
+                        href="/dashboard/products"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveTab('products');
+                          handleNavigation('/dashboard/products');
+                        }}
+                        className={`${
+                          activeTab === 'products' 
+                            ? 'border-blue-500 text-gray-900' 
+                            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                        } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                      >
+                        Products
+                      </a>
+                      <a 
+                        href="/dashboard/analytics"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveTab('analytics');
+                          handleNavigation('/dashboard/analytics');
+                        }}
+                        className={`${
+                          activeTab === 'analytics' 
+                            ? 'border-blue-500 text-gray-900' 
+                            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                        } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                      >
+                        Analytics
+                      </a>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        </nav>
+
+        {/* Dashboard Main Content */}
+        {user?.role === 'seller' 
+          ? (activeTab === 'overview' 
+              ? renderDashboardContent() 
+              : activeTab === 'products' 
+              ? renderProductsManagement() 
+              : activeTab === 'analytics' 
+              ? renderAnalytics() 
+              : null)
+          : (
+            // Buyer Dashboard View
+            <div>
+              <div className="border-b border-gray-200 pb-4 mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name || user?.email?.split('@')[0]}!</h2>
+                <p className="mt-1 text-sm text-gray-500">Here's what's happening with your account.</p>
+              </div>
+              
+              {/* Buyer Stats */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-6">
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="px-4 py-5 sm:p-6">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Orders (30 days)
+                    </dt>
+                    <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                      {buyerStats.orders}
+                    </dd>
+                    <div className="mt-2 flex items-center text-sm text-green-600">
+                      <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                      <span>12%</span>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-3 sm:px-6">
+                    <div className="text-sm">
+                      <a 
+                        href="/dashboard/orders" 
+                        className="font-medium text-blue-600 hover:text-blue-500"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavigation('/dashboard/orders');
+                        }}
+                      >
+                        View all orders
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="px-4 py-5 sm:p-6">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Saved Items
+                    </dt>
+                    <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                      {buyerStats.saved}
+                    </dd>
+                    <div className="mt-2 flex items-center text-sm text-green-600">
+                      <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                      <span>3 new items</span>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-3 sm:px-6">
+                    <div className="text-sm">
+                      <a 
+                        href="/dashboard/saved-items" 
+                        className="font-medium text-blue-600 hover:text-blue-500"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavigation('/dashboard/saved-items');
+                        }}
+                      >
+                        View saved items
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="px-4 py-5 sm:p-6">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Recent Views
+                    </dt>
+                    <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                      {buyerStats.recent}
+                    </dd>
+                    <div className="mt-2 flex items-center text-sm text-gray-500">
+                      <span>Last browsed 2 hours ago</span>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-3 sm:px-6">
+                    <div className="text-sm">
+                      <a 
+                        href="/products" 
+                        className="font-medium text-blue-600 hover:text-blue-500"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavigation('/products');
+                        }}
+                      >
+                        Browse products
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Main Dashboard Content */}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {/* Quick Actions */}
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="px-4 py-5 sm:p-6">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Quick Actions
+                    </h3>
+                    <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                      <div>
+                        <a 
+                          href="/products" 
+                          className="inline-flex items-center justify-center w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleNavigation('/products');
+                          }}
+                        >
+                          Shop Now
+                        </a>
+                      </div>
+                      <div>
+                        <a 
+                          href="/dashboard/orders" 
+                          className="inline-flex items-center justify-center w-full px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleNavigation('/dashboard/orders');
+                          }}
+                        >
+                          My Orders
+                        </a>
+                      </div>
+                      <div>
+                        <a 
+                          href="/sellers" 
+                          className="inline-flex items-center justify-center w-full px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleNavigation('/sellers');
+                          }}
+                        >
+                          Browse Tailors
+                        </a>
+                      </div>
+                      <div>
+                        <a 
+                          href="/dashboard/profile" 
+                          className="inline-flex items-center justify-center w-full px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleNavigation('/dashboard/profile');
+                          }}
+                        >
+                          Edit Profile
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Recent Activity */}
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Recent Activity
+                    </h3>
+                  </div>
+                  <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
+                    <dl className="sm:divide-y sm:divide-gray-200">
+                      {recentOrders.map((order, idx) => (
+                        <div key={order.id} className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                          <dt className="text-sm font-medium text-gray-500">
+                            {order.date}
+                          </dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <div className="flex justify-between">
+                              <span>
+                                Order <a 
+                                  href={`/dashboard/orders/${order.id}`} 
+                                  className="text-blue-600 hover:text-blue-500"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleNavigation(`/dashboard/orders/${order.id}`);
+                                  }}
+                                >{order.id}</a> - {order.product}
+                              </span>
+                              <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 
+                                  order.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
+                                  order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'}`}>
+                                {order.status}
+                              </span>
+                            </div>
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                    <a 
+                      href="/dashboard/orders" 
+                      className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation('/dashboard/orders');
+                      }}
+                    >
+                      View all
+                    </a>
+                  </div>
+                </div>
+                
+                {/* Account Information */}
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Account Information
+                    </h3>
+                    <a 
+                      href="/dashboard/profile" 
+                      className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation('/dashboard/profile');
+                      }}
+                    >
+                      Edit
+                    </a>
+                  </div>
+                  <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
+                    <dl className="sm:divide-y sm:divide-gray-200">
+                      <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt className="text-sm font-medium text-gray-500">Full name</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                          {user?.name || 'Not provided'}
+                        </dd>
+                      </div>
+                      <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt className="text-sm font-medium text-gray-500">Email address</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                          {user?.email || 'Not provided'}
+                        </dd>
+                      </div>
+                      <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt className="text-sm font-medium text-gray-500">Phone number</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                          {user?.phone || 'Not provided'}
+                        </dd>
+                      </div>
+                      <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt className="text-sm font-medium text-gray-500">Account type</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                          <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                            Buyer Account
+                          </span>
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+                
+                {/* Recommended Products */}
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Recommended For You
+                    </h3>
+                  </div>
+                  <div className="border-t border-gray-200">
+                    <ul className="divide-y divide-gray-200">
+                      {inventory.slice(0, 3).map(item => (
+                        <li key={item.id} className="px-4 py-4 sm:px-6">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10">
+                              <img className="h-10 w-10 rounded-full" src={item.image} alt={item.name} />
+                            </div>
+                            <div className="ml-4 flex-1">
+                              <div className="text-sm font-medium text-gray-900">{item.name}</div>
+                              <div className="text-sm text-gray-500">${item.price.toFixed(2)}</div>
+                            </div>
+                            <div>
+                              <a 
+                                href={`/products/${item.id}`} 
+                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleNavigation(`/products/${item.id}`);
+                                }}
+                              >
+                                View
+                              </a>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                    <a 
+                      href="/products" 
+                      className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation('/products');
+                      }}
+                    >
+                      Browse all products
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+      </main>
     </div>
   );
 }

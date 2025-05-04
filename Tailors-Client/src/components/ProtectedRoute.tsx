@@ -16,20 +16,26 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Show loading state
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
   }
 
-  // If not authenticated, redirect to login
+  // If not authenticated, redirect to login with the current location for redirect after login
   if (!isAuthenticated || !user) {
-    return <Navigate to={redirectPath} state={{ from: location }} replace />;
+    return <Navigate to={redirectPath} state={{ from: location.pathname }} replace />;
   }
 
-  // Check for required role(s)
+  // Check for required role(s) if specified
   if (requiredRole) {
     const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
     
-    // If user doesn't have required role, redirect to unauthorized
-    if (user.role && !roles.includes(user.role)) {
+    // If user doesn't have any of the required roles, redirect to unauthorized
+    if (!user.role || !roles.includes(user.role)) {
       return <Navigate to="/unauthorized" replace />;
     }
   }

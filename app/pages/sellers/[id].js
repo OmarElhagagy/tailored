@@ -379,8 +379,8 @@ export default function SellerProfile() {
                         <div className="mt-4 flex justify-between">
                           <div>
                             <h3 className="text-sm text-gray-700">
-                              <Link href={`/products/${product.id}`} className="absolute inset-0">
-                                {product.name}
+                              <Link href={`/seller/${seller.id}/product/${product.id}`} legacyBehavior>
+                                <a className="absolute inset-0">{product.name}</a>
                               </Link>
                             </h3>
                             <p className="mt-1 text-sm text-gray-500">{product.category}</p>
@@ -414,8 +414,8 @@ export default function SellerProfile() {
                       <div className="mt-4 flex justify-between">
                         <div>
                           <h3 className="text-sm text-gray-700">
-                            <Link href={`/products/${product.id}`} className="absolute inset-0">
-                              {product.name}
+                            <Link href={`/seller/${seller.id}/product/${product.id}`} legacyBehavior>
+                              <a className="absolute inset-0">{product.name}</a>
                             </Link>
                           </h3>
                           <p className="mt-1 text-sm text-gray-500">{product.category}</p>
@@ -423,7 +423,7 @@ export default function SellerProfile() {
                         <p className="text-sm font-medium text-gray-900">${product.price}</p>
                       </div>
                       <div className="mt-2">
-                        <Link href={`/products/${product.id}`} className="text-sm text-blue-600 hover:text-blue-800">
+                        <Link href={`/seller/${seller.id}/product/${product.id}`} className="text-sm text-blue-600 hover:text-blue-800">
                           View details
                         </Link>
                       </div>

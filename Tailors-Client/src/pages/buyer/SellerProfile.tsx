@@ -4,7 +4,7 @@ import axios from 'axios';
 import { API_URL } from '../../config/constants';
 import {
   Container, Row, Col, Card, Button, Nav, Tab, 
-  Spinner, Alert, Badge, Image
+  Spinner, Alert, Badge, Image, Form
 } from 'react-bootstrap';
 import { FaStar, FaMapMarkerAlt, FaPhone, FaGlobe, FaCalendarAlt } from 'react-icons/fa';
 import './SellerProfile.css';
@@ -248,9 +248,9 @@ const SellerProfile: React.FC = () => {
                       {(seller.specialties && seller.specialties.length > 0) && (
                         <div className="mt-4">
                           <h3 className="h5 mb-2">Specialties</h3>
-                          <div>
+                          <div className="d-flex flex-wrap gap-2">
                             {seller.specialties.map((specialty, index) => (
-                              <Badge key={index} bg="primary" className="me-2 mb-2">
+                              <Badge key={index} bg="light" text="dark" className="py-2 px-3">
                                 {specialty}
                               </Badge>
                             ))}
@@ -269,43 +269,59 @@ const SellerProfile: React.FC = () => {
                     </Card.Body>
                   </Card>
                   
+                  {/* Featured Products Preview */}
                   {products.length > 0 && (
-                    <div className="mb-4">
-                      <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h2 className="h4 mb-0">Featured Products</h2>
-                        <Button variant="link" onClick={() => setActiveTab('products')}>
-                          View All
-                        </Button>
-                      </div>
-                      <Row>
-                        {products.slice(0, 3).map((product) => (
-                          <Col key={product._id} md={4} className="mb-3">
-                            <Card className="h-100">
-                              <div style={{ height: '160px', overflow: 'hidden' }}>
-                                {product.mainPhoto ? (
-                                  <img 
-                                    src={`${API_URL}/uploads/${product.mainPhoto}`} 
-                                    alt={product.title} 
-                                    className="card-img-top object-fit-cover h-100 w-100"
-                                  />
-                                ) : (
-                                  <div className="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
-                                    <span className="text-muted">No image</span>
+                    <Card className="mb-4">
+                      <Card.Body>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                          <h2 className="h4 mb-0">Featured Products</h2>
+                          <Button 
+                            variant="link" 
+                            className="text-decoration-none"
+                            onClick={() => setActiveTab('products')}
+                          >
+                            View All Products
+                          </Button>
+                        </div>
+                        
+                        <Row className="g-3">
+                          {products.slice(0, 3).map((product) => (
+                            <Col md={4} sm={6} key={product._id}>
+                              <Link 
+                                to={`/seller/${id}/product/${product._id}`} 
+                                className="text-decoration-none"
+                              >
+                                <Card className="h-100 product-card border-0 shadow-sm">
+                                  <div style={{ height: '180px', overflow: 'hidden' }}>
+                                    <Card.Img 
+                                      variant="top" 
+                                      src={`${API_URL}/uploads/${product.mainPhoto}`}
+                                      alt={product.title}
+                                      className="img-fluid"
+                                      style={{ objectFit: 'cover', height: '100%', width: '100%' }}
+                                    />
                                   </div>
-                                )}
-                              </div>
-                              <Card.Body className="d-flex flex-column">
-                                <h5 className="card-title">{product.title}</h5>
-                                <p className="card-text text-primary fw-bold mb-2">${product.price.toFixed(2)}</p>
-                                <Link to={`/product/${product._id}`} className="btn btn-outline-primary mt-auto">
-                                  View Details
-                                </Link>
-                              </Card.Body>
-                            </Card>
-                          </Col>
-                        ))}
-                      </Row>
-                    </div>
+                                  <Card.Body>
+                                    <Card.Title className="h6 mb-2 text-truncate">
+                                      {product.title}
+                                    </Card.Title>
+                                    <div className="d-flex justify-content-between align-items-center">
+                                      <span className="fw-bold">${product.price.toFixed(2)}</span>
+                                      {product.rating && (
+                                        <div className="d-flex align-items-center small">
+                                          <FaStar className="text-warning me-1" />
+                                          <span>{product.rating.average.toFixed(1)}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </Card.Body>
+                                </Card>
+                              </Link>
+                            </Col>
+                          ))}
+                        </Row>
+                      </Card.Body>
+                    </Card>
                   )}
                 </Col>
                 
@@ -365,58 +381,101 @@ const SellerProfile: React.FC = () => {
             </Tab.Pane>
             
             <Tab.Pane eventKey="products">
-              <Row>
-                <Col xs={12}>
-                  <h2 className="h4 mb-4">Products by {seller.businessName}</h2>
-                </Col>
+              <div className="mb-4">
+                <h2 className="h4 mb-3">Products by {seller.businessName}</h2>
+                
                 {products.length === 0 ? (
-                  <Col>
-                    <Card className="text-center py-5">
+                  <Alert variant="info">
+                    This seller doesn't have any products listed yet.
+                  </Alert>
+                ) : (
+                  <>
+                    {/* Product Filters */}
+                    <Card className="mb-4">
                       <Card.Body>
-                        <p className="mb-0">This seller has no products listed yet.</p>
+                        <Row>
+                          <Col md={6}>
+                            <Form.Group className="mb-3 mb-md-0">
+                              <Form.Control 
+                                type="text" 
+                                placeholder="Search products by name..."
+                                // Add search functionality here if needed
+                              />
+                            </Form.Group>
+                          </Col>
+                          <Col md={3}>
+                            <Form.Select 
+                              aria-label="Sort by"
+                              // Add sort functionality here if needed
+                            >
+                              <option>Sort by</option>
+                              <option value="price_asc">Price: Low to High</option>
+                              <option value="price_desc">Price: High to Low</option>
+                              <option value="newest">Newest First</option>
+                              <option value="rating">Highest Rated</option>
+                            </Form.Select>
+                          </Col>
+                          <Col md={3}>
+                            <Form.Select 
+                              aria-label="Filter by"
+                              // Add filter functionality here if needed
+                            >
+                              <option>All Categories</option>
+                              {/* Add dynamic categories if available */}
+                            </Form.Select>
+                          </Col>
+                        </Row>
                       </Card.Body>
                     </Card>
-                  </Col>
-                ) : (
-                  products.map((product) => (
-                    <Col key={product._id} lg={4} md={6} className="mb-4">
-                      <Card className="h-100">
-                        <div style={{ height: '200px', overflow: 'hidden' }}>
-                          {product.mainPhoto ? (
-                            <img 
-                              src={`${API_URL}/uploads/${product.mainPhoto}`} 
-                              alt={product.title} 
-                              className="card-img-top object-fit-cover h-100 w-100"
-                            />
-                          ) : (
-                            <div className="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
-                              <span className="text-muted">No image</span>
-                            </div>
-                          )}
-                        </div>
-                        <Card.Body className="d-flex flex-column">
-                          <h5 className="card-title">{product.title}</h5>
-                          <p className="text-muted small mb-2">{product.category}</p>
-                          <p className="card-text text-primary fw-bold mb-2">${product.price.toFixed(2)}</p>
-                          {product.rating && (
-                            <div className="mb-3">
-                              {renderStarRating(product.rating.average)}
-                            </div>
-                          )}
-                          <p className="card-text mb-3">
-                            {product.description.length > 100 
-                              ? `${product.description.substring(0, 100)}...`
-                              : product.description}
-                          </p>
-                          <Link to={`/product/${product._id}`} className="btn btn-primary mt-auto">
-                            View Details
+                    
+                    {/* Product Grid */}
+                    <Row className="g-4">
+                      {products.map((product) => (
+                        <Col lg={3} md={4} sm={6} key={product._id}>
+                          <Link 
+                            to={`/seller/${id}/product/${product._id}`} 
+                            className="text-decoration-none"
+                          >
+                            <Card className="h-100 product-card">
+                              <div style={{ height: '200px', overflow: 'hidden' }}>
+                                <Card.Img 
+                                  variant="top" 
+                                  src={`${API_URL}/uploads/${product.mainPhoto}`}
+                                  alt={product.title}
+                                  className="img-fluid"
+                                  style={{ objectFit: 'cover', height: '100%', width: '100%' }}
+                                />
+                              </div>
+                              <Card.Body>
+                                <Card.Title className="h6 mb-2">
+                                  {product.title}
+                                </Card.Title>
+                                <div className="text-truncate small text-muted mb-2">
+                                  {product.description}
+                                </div>
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <span className="fw-bold">${product.price.toFixed(2)}</span>
+                                  {product.rating && (
+                                    <div className="d-flex align-items-center small">
+                                      <FaStar className="text-warning me-1" />
+                                      <span>{product.rating.average.toFixed(1)}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </Card.Body>
+                              <Card.Footer className="bg-white border-top-0 d-grid">
+                                <Button variant="outline-primary" size="sm">
+                                  View Details
+                                </Button>
+                              </Card.Footer>
+                            </Card>
                           </Link>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))
+                        </Col>
+                      ))}
+                    </Row>
+                  </>
                 )}
-              </Row>
+              </div>
             </Tab.Pane>
             
             <Tab.Pane eventKey="reviews">

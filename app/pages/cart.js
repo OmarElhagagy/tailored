@@ -17,7 +17,8 @@ export default function Cart() {
       price: 299.99,
       quantity: 1,
       image: 'https://via.placeholder.com/100x100',
-      seller: 'Premium Tailors'
+      seller: 'Premium Tailors',
+      sellerId: 'premium-tailors'
     },
     {
       id: 2,
@@ -26,7 +27,8 @@ export default function Cart() {
       price: 59.99,
       quantity: 2,
       image: 'https://via.placeholder.com/100x100',
-      seller: 'Urban Threads'
+      seller: 'Urban Threads',
+      sellerId: 'urban-threads'
     }
   ];
   
@@ -109,7 +111,7 @@ export default function Cart() {
                           <div className="flex items-center justify-between">
                             <div>
                               <h3 className="text-lg font-medium text-gray-900">
-                                <Link href={`/products/${item.productId}`} className="hover:underline">
+                                <Link href={`/sellers/${item.sellerId}/product/${item.productId}`} className="hover:underline">
                                   {item.name}
                                 </Link>
                               </h3>
@@ -180,10 +182,10 @@ export default function Cart() {
                     Proceed to Checkout
                   </button>
                 </div>
-                <div className="mt-4">
-                  <Link href="/products" className="text-sm text-blue-600 hover:text-blue-500 flex items-center justify-center">
-                    <svg className="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <div className="mt-4 flex justify-center">
+                  <Link href="/sellers" className="text-sm text-blue-600 hover:text-blue-500 flex items-center justify-center">
+                    <svg className="flex-shrink-0 mr-1 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
                     </svg>
                     Continue Shopping
                   </Link>
@@ -198,8 +200,8 @@ export default function Cart() {
             </svg>
             <h2 className="mt-4 text-lg font-medium text-gray-900">Your cart is empty</h2>
             <p className="mt-2 text-sm text-gray-500">Looks like you haven't added any items to your cart yet.</p>
-            <div className="mt-6">
-              <Link href="/products" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+            <div className="mt-6 flex justify-center">
+              <Link href="/sellers" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
                 Browse Products
               </Link>
             </div>

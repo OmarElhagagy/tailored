@@ -2,6 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Warm and professional tailoring color palette */
+  --primary: 25 100% 50%; /* Warm orange */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 180 30% 45%; /* Teal - complementary to orange */
+  --secondary-foreground: 0 0% 100%;
+  
+  --accent: 340 80% 55%; /* Ruby red - fabric color */
+  --accent-foreground: 0 0% 100%;
+  
+  --background: 30 30% 96%; /* Warm cream paper */
+  --foreground: 25 40% 20%; /* Warm dark brown */
+  
+  --card: 0 0% 100%; /* White card */
+  --card-foreground: 25 40% 20%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 25 40% 20%;
+  
+  --border: 20 15% 80%;
+  --input: 20 15% 80%;
+  
+  --muted: 25 10% 90%;
+  --muted-foreground: 25 30% 40%;
+  
+  --destructive: 0 100% 40%; /* Error red */
+  --destructive-foreground: 0 0% 100%;
+  
+  --ring: 25 100% 50%;
+  
+  --radius: 0.5rem;
+}
+
 html,
 body {
   padding: 0;

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL } from '../../config/constants';
 import { useAuth } from '../../contexts/AuthContext';
+import { Container, Row, Col, Card, Button, Form, Badge, Tabs, Tab, Spinner, Alert, Image } from 'react-bootstrap';
+import { FaStar, FaArrowLeft, FaShoppingCart, FaStoreAlt } from 'react-icons/fa';
 
 // Types
 interface Product {
@@ -77,7 +79,8 @@ interface CustomizationOption {
 }
 
 const ProductDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  // Get both productId and sellerId from URL params
+  const { productId, sellerId } = useParams<{ productId: string; sellerId: string }>();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
@@ -93,6 +96,7 @@ const ProductDetail: React.FC = () => {
   const [selectedMeasurement, setSelectedMeasurement] = useState<string>('');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [activeTab, setActiveTab] = useState('description');
+  const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
 
   // Fetch product details
   useEffect(() => {
@@ -101,10 +105,18 @@ const ProductDetail: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        const response = await axios.get(`${API_URL}/api/listings/${id}`);
+        // Use productId instead of id
+        const response = await axios.get(`${API_URL}/api/listings/${productId}`);
         
         if (response.data.success) {
           setProduct(response.data.data);
+          
+          // Verify this product belongs to the seller in the URL
+          if (sellerId && response.data.data.seller._id !== sellerId) {
+            setError('This product does not belong to the specified seller');
+            return;
+          }
+          
           if (response.data.data.photos && response.data.data.photos.length > 0) {
             setSelectedPhoto(response.data.data.mainPhoto || response.data.data.photos[0]);
           }
@@ -143,10 +155,36 @@ const ProductDetail: React.FC = () => {
       }
     };
 
-    if (id) {
+    if (productId) {
       fetchProduct();
     }
-  }, [id]);
+  }, [productId, sellerId]);
+
+  // Fetch more products from this seller
+  useEffect(() => {
+    const fetchSellerProducts = async () => {
+      if (!sellerId || !product) return;
+      
+      try {
+        const response = await axios.get(`${API_URL}/api/listings/seller/${sellerId}/public`);
+        
+        if (response.data.success) {
+          // Filter out the current product and limit to 4 related products
+          const otherProducts = response.data.data.listings.filter(
+            (p: Product) => p._id !== productId
+          ).slice(0, 4);
+          
+          setSellerProducts(otherProducts);
+        }
+      } catch (err) {
+        console.error('Error fetching seller products:', err);
+      }
+    };
+
+    if (product && sellerId) {
+      fetchSellerProducts();
+    }
+  }, [product, sellerId, productId]);
 
   // Fetch user's saved measurements if authenticated
   useEffect(() => {
@@ -177,10 +215,10 @@ const ProductDetail: React.FC = () => {
   // Fetch product reviews
   useEffect(() => {
     const fetchReviews = async () => {
-      if (!id) return;
+      if (!productId) return;
       
       try {
-        const response = await axios.get(`${API_URL}/api/listings/${id}/reviews`);
+        const response = await axios.get(`${API_URL}/api/listings/${productId}/reviews`);
         
         if (response.data.success) {
           setReviews(response.data.data);
@@ -191,7 +229,7 @@ const ProductDetail: React.FC = () => {
     };
 
     fetchReviews();
-  }, [id]);
+  }, [productId]);
 
   // Calculate total price based on selections
   const calculateTotalPrice = () => {
@@ -232,7 +270,7 @@ const ProductDetail: React.FC = () => {
   const handleAddToCart = () => {
     if (!isAuthenticated) {
       // Redirect to login with return URL
-      navigate('/login?redirect=' + encodeURIComponent(`/product/${id}`));
+      navigate(`/login?redirect=${encodeURIComponent(`/seller/${sellerId}/product/${productId}`)}`);
       return;
     }
 
@@ -248,454 +286,361 @@ const ProductDetail: React.FC = () => {
 
     // Add to cart logic
     // In a real application, this would call the cart service/API
-    alert('Added to cart! This is a placeholder - implement cart functionality');
-    
-    // Navigate to checkout
-    // navigate('/buyer/checkout');
+    alert(`Product added to cart: ${product?.title}`);
   };
 
-  // Proceed to checkout handler
-  const handleProceedToCheckout = () => {
-    if (!isAuthenticated) {
-      // Redirect to login with return URL
-      navigate('/login?redirect=' + encodeURIComponent(`/product/${id}`));
-      return;
-    }
-
-    // Required fields validation similar to addToCart
-    const missingRequired = product?.customizationOptions
-      .filter(option => option.required && !customizations[option.name])
-      .map(option => option.name);
-
-    if (missingRequired && missingRequired.length > 0) {
-      alert(`Please select options for: ${missingRequired.join(', ')}`);
-      return;
-    }
-
-    // Navigate to checkout with product data
-    navigate('/buyer/checkout', { 
-      state: { 
-        product: product,
-        quantity,
-        selectedMaterial,
-        selectedColor,
-        selectedDelivery,
-        customizations,
-        selectedMeasurement,
-        totalPrice: calculateTotalPrice()
-      } 
-    });
-  };
-
-  // Render star rating
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex items-center">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <svg
-            key={star}
-            className={`w-5 h-5 ${
-              star <= rating ? 'text-yellow-400' : 'text-gray-300'
-            }`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-        ))}
-        <span className="ml-1 text-gray-600">({rating.toFixed(1)})</span>
-      </div>
-    );
-  };
-
+  // Render loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+      <Container className="py-5 text-center">
+        <Spinner animation="border" />
+        <p className="mt-3">Loading product details...</p>
+      </Container>
     );
   }
 
+  // Render error state
   if (error || !product) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-700 mb-4">{error || 'Product not found'}</p>
-          <button
-            onClick={() => navigate('/buyer/products')}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Back to Products
-          </button>
-        </div>
-      </div>
+      <Container className="py-5">
+        <Alert variant="danger">
+          {error || 'Product not found'}
+        </Alert>
+        <Button variant="primary" onClick={() => navigate(`/seller/${sellerId}`)}>
+          <FaArrowLeft className="me-2" /> Back to Seller
+        </Button>
+      </Container>
     );
   }
 
+  // Handle navigation to seller profile
+  const goToSellerProfile = () => {
+    navigate(`/seller/${product.seller._id}`);
+  };
+
+  // Render stars for ratings
+  const renderStars = (rating: number) => {
+    return (
+      <div className="d-flex">
+        {[...Array(5)].map((_, i) => (
+          <FaStar
+            key={i}
+            className="me-1"
+            color={i < Math.floor(rating) ? '#ffc107' : '#e4e5e9'}
+          />
+        ))}
+        <span className="ms-1">({rating.toFixed(1)})</span>
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Product Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
-            {/* Product Images */}
-            <div>
-              <div className="aspect-w-1 aspect-h-1 mb-4 overflow-hidden rounded-lg">
+    <Container className="py-4">
+      {/* Breadcrumb Navigation */}
+      <div className="mb-4 d-flex">
+        <Link to={`/seller/${sellerId}`} className="text-decoration-none">
+          <Button variant="outline-secondary" size="sm" className="me-2">
+            <FaArrowLeft className="me-1" /> Back to {product.seller.businessName}
+          </Button>
+        </Link>
+      </div>
+      
+      <Row>
+        {/* Product Images */}
+        <Col md={6} className="mb-4">
+          <div className="product-main-image mb-3">
+            <img
+              src={`${API_URL}/uploads/${selectedPhoto}`}
+              alt={product.title}
+              className="img-fluid rounded"
+            />
+          </div>
+          
+          <div className="product-thumbnails d-flex">
+            {product.photos.map((photo, index) => (
+              <div
+                key={index}
+                className={`thumbnail me-2 ${selectedPhoto === photo ? 'border border-primary' : ''}`}
+                onClick={() => setSelectedPhoto(photo)}
+              >
                 <img
-                  src={selectedPhoto || product.mainPhoto}
-                  alt={product.title}
-                  className="object-cover object-center w-full h-96"
+                  src={`${API_URL}/uploads/${photo}`}
+                  alt={`Thumbnail ${index}`}
+                  className="img-fluid rounded"
+                  style={{ width: '60px', height: '60px', objectFit: 'cover', cursor: 'pointer' }}
                 />
               </div>
-              <div className="grid grid-cols-5 gap-2">
-                {product.photos.map((photo, index) => (
-                  <div
-                    key={index}
-                    className={`cursor-pointer border-2 rounded-md overflow-hidden ${
-                      selectedPhoto === photo ? 'border-blue-500' : 'border-gray-200'
-                    }`}
-                    onClick={() => setSelectedPhoto(photo)}
-                  >
-                    <img
-                      src={photo}
-                      alt={`${product.title} - thumbnail ${index + 1}`}
-                      className="object-cover object-center w-full h-16"
-                    />
-                  </div>
-                ))}
+            ))}
+          </div>
+        </Col>
+        
+        {/* Product Info & Options */}
+        <Col md={6}>
+          <h1 className="h2 mb-2">{product.title}</h1>
+          
+          <div className="d-flex align-items-center mb-3">
+            {product.rating && renderStars(product.rating.average)}
+          </div>
+          
+          <div className="mb-3 d-flex align-items-center">
+            <h3 className="h4 mb-0 me-3">${product.price.toFixed(2)}</h3>
+            <Badge bg={
+              product.stockStatus === 'in_stock' ? 'success' :
+              product.stockStatus === 'low_stock' ? 'warning' : 'danger'
+            }>
+              {product.stockStatus === 'in_stock' ? 'In Stock' :
+              product.stockStatus === 'low_stock' ? 'Low Stock' : 'Out of Stock'}
+            </Badge>
+          </div>
+          
+          {/* Seller Info Card */}
+          <Card className="mb-4 border-light">
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3">
+                <FaStoreAlt size={24} className="text-primary" />
               </div>
-            </div>
-
-            {/* Product Info */}
-            <div>
-              <div className="mb-2 text-sm text-gray-500">{product.category}</div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h1>
-              
-              <div className="flex items-center mb-4">
-                {product.rating && product.rating.average > 0 ? (
-                  <div className="flex items-center">
-                    {renderStars(product.rating.average)}
-                    <span className="ml-2 text-blue-600 cursor-pointer" onClick={() => setActiveTab('reviews')}>
-                      ({product.rating.count} reviews)
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-sm text-gray-500">No reviews yet</span>
+              <div>
+                <p className="mb-1">Sold by:</p>
+                <h4 className="h6 mb-1">{product.seller.businessName}</h4>
+                {product.seller.rating && (
+                  <div className="small mb-2">{renderStars(product.seller.rating.average)}</div>
                 )}
-              </div>
-              
-              <div className="text-2xl font-bold text-gray-900 mb-4">
-                ${calculateTotalPrice().toFixed(2)}
-              </div>
-              
-              <div className="mb-4">
-                <span
-                  className={`px-2 py-1 text-xs rounded ${
-                    product.stockStatus === 'in_stock'
-                      ? 'bg-green-100 text-green-800'
-                      : product.stockStatus === 'low_stock'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={goToSellerProfile}
                 >
-                  {product.stockStatus === 'in_stock'
-                    ? 'In Stock'
-                    : product.stockStatus === 'low_stock'
-                    ? 'Low Stock'
-                    : 'Out of Stock'}
-                </span>
-                <span className="ml-2 text-sm text-gray-500">
-                  Sold by <span className="font-medium">{product.seller.businessName}</span>
-                </span>
+                  View Seller Profile
+                </Button>
               </div>
-              
-              {/* Quantity Selector */}
-              <div className="mb-4">
-                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantity
-                </label>
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-1 border border-gray-300 rounded-l-md bg-gray-50 text-gray-500 hover:bg-gray-100"
-                  >
-                    -
-                  </button>
-                  <input
-                    id="quantity"
-                    type="number"
-                    min="1"
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-16 text-center border-t border-b border-gray-300 py-1"
-                  />
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="px-3 py-1 border border-gray-300 rounded-r-md bg-gray-50 text-gray-500 hover:bg-gray-100"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-              
-              {/* Material Selector */}
-              {product.availableMaterials && product.availableMaterials.length > 0 && (
-                <div className="mb-4">
-                  <label htmlFor="material" className="block text-sm font-medium text-gray-700 mb-1">
-                    Material
-                  </label>
-                  <select
-                    id="material"
-                    value={selectedMaterial}
-                    onChange={(e) => setSelectedMaterial(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    {product.availableMaterials.map((material, index) => (
-                      <option key={index} value={material.name}>
-                        {material.name} {material.price > 0 ? `(+$${material.price.toFixed(2)})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              {/* Color Selector */}
-              {product.colors && product.colors.length > 0 && (
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Color
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {product.colors.map((color, index) => (
+            </Card.Body>
+          </Card>
+          
+          {/* Order Options Form */}
+          <Form className="mt-4">
+            {/* Quantity */}
+            <Form.Group className="mb-3">
+              <Form.Label>Quantity</Form.Label>
+              <Form.Control
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(parseInt(e.target.value))}
+                style={{ width: '5rem' }}
+              />
+            </Form.Group>
+            
+            {/* Material Selection */}
+            {product.availableMaterials && product.availableMaterials.length > 0 && (
+              <Form.Group className="mb-3">
+                <Form.Label>Material</Form.Label>
+                <Form.Select
+                  value={selectedMaterial}
+                  onChange={(e) => setSelectedMaterial(e.target.value)}
+                >
+                  {product.availableMaterials.map((material, index) => (
+                    <option
+                      key={index}
+                      value={material.name}
+                      disabled={!material.inStock}
+                    >
+                      {material.name} {material.price > 0 ? `(+$${material.price.toFixed(2)})` : ''}
+                      {!material.inStock ? ' - Out of Stock' : ''}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            )}
+            
+            {/* Colors */}
+            {product.colors && product.colors.length > 0 && (
+              <Form.Group className="mb-3">
+                <Form.Label>Color</Form.Label>
+                <div className="d-flex">
+                  {product.colors.map((color, index) => (
+                    <div
+                      key={index}
+                      className={`color-option me-2 p-1 rounded ${selectedColor === color ? 'border border-primary' : 'border'}`}
+                      onClick={() => setSelectedColor(color)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div
-                        key={index}
-                        className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
-                          selectedColor === color ? 'border-blue-500' : 'border-gray-200'
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setSelectedColor(color)}
-                        title={color}
+                        style={{
+                          backgroundColor: color,
+                          width: '30px',
+                          height: '30px',
+                          borderRadius: '50%'
+                        }}
                       />
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Customization Options */}
-              {product.customizationOptions && product.customizationOptions.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Customization Options</h3>
-                  {product.customizationOptions.map((option, index) => (
-                    <div key={index} className="mb-3">
-                      <label htmlFor={`option-${index}`} className="block text-sm text-gray-600 mb-1">
-                        {option.name} {option.required && <span className="text-red-500">*</span>}
-                        {option.affects_price && option.price_modifier > 0 && (
-                          <span className="text-gray-500 ml-1">
-                            (+${option.price_modifier.toFixed(2)})
-                          </span>
-                        )}
-                      </label>
-                      <select
-                        id={`option-${index}`}
-                        value={customizations[option.name] || ''}
-                        onChange={(e) => setCustomizations({
-                          ...customizations,
-                          [option.name]: e.target.value
-                        })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">Select {option.name}</option>
-                        {option.options.map((opt, i) => (
-                          <option key={i} value={opt}>
-                            {opt}
-                          </option>
-                        ))}
-                      </select>
                     </div>
                   ))}
                 </div>
-              )}
-              
-              {/* Delivery Options */}
-              {product.deliveryOptions && product.deliveryOptions.length > 0 && (
-                <div className="mb-4">
-                  <label htmlFor="delivery" className="block text-sm font-medium text-gray-700 mb-1">
-                    Delivery Method
-                  </label>
-                  <select
-                    id="delivery"
-                    value={selectedDelivery}
-                    onChange={(e) => setSelectedDelivery(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    {product.deliveryOptions.map((delivery, index) => (
-                      <option key={index} value={delivery.method}>
-                        {delivery.method} (${delivery.price.toFixed(2)}) - 
-                        {delivery.estimatedDays.min === delivery.estimatedDays.max
-                          ? `${delivery.estimatedDays.min} days`
-                          : `${delivery.estimatedDays.min}-${delivery.estimatedDays.max} days`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              {/* Measurements Selection */}
-              {isAuthenticated && measurements.length > 0 && (
-                <div className="mb-6">
-                  <label htmlFor="measurements" className="block text-sm font-medium text-gray-700 mb-1">
-                    Your Measurements
-                  </label>
-                  <select
-                    id="measurements"
-                    value={selectedMeasurement}
-                    onChange={(e) => setSelectedMeasurement(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    {measurements.map((measurement) => (
-                      <option key={measurement._id} value={measurement._id}>
-                        {measurement.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="mt-1">
-                    <button
-                      onClick={() => navigate('/buyer/measurements')}
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      Manage measurements
-                    </button>
-                  </div>
-                </div>
-              )}
-              
-              {/* Add to Cart / Buy Now Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={product.stockStatus === 'out_of_stock'}
-                  className={`px-6 py-3 text-sm font-medium rounded-md ${
-                    product.stockStatus === 'out_of_stock'
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-white border border-blue-600 text-blue-600 hover:bg-blue-50'
-                  } flex-1`}
+              </Form.Group>
+            )}
+            
+            {/* Customization Options */}
+            {product.customizationOptions && product.customizationOptions.map((option, index) => (
+              <Form.Group key={index} className="mb-3">
+                <Form.Label>
+                  {option.name}
+                  {option.required && <span className="text-danger ms-1">*</span>}
+                  {option.affects_price && <span className="text-muted ms-1">(+${option.price_modifier.toFixed(2)})</span>}
+                </Form.Label>
+                <Form.Select
+                  value={customizations[option.name] || ''}
+                  onChange={(e) => setCustomizations({
+                    ...customizations,
+                    [option.name]: e.target.value
+                  })}
+                  required={option.required}
                 >
-                  Add to Cart
-                </button>
-                <button
-                  onClick={handleProceedToCheckout}
-                  disabled={product.stockStatus === 'out_of_stock'}
-                  className={`px-6 py-3 text-sm font-medium rounded-md ${
-                    product.stockStatus === 'out_of_stock'
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  } flex-1`}
+                  {option.options.map((opt, optIndex) => (
+                    <option key={optIndex} value={opt}>{opt}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            ))}
+            
+            {/* Delivery Options */}
+            {product.deliveryOptions && product.deliveryOptions.length > 0 && (
+              <Form.Group className="mb-3">
+                <Form.Label>Delivery Method</Form.Label>
+                <Form.Select
+                  value={selectedDelivery}
+                  onChange={(e) => setSelectedDelivery(e.target.value)}
                 >
-                  Buy Now
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="border-t border-gray-200">
-            <div className="flex">
-              <button
-                className={`px-6 py-3 font-medium text-sm ${
-                  activeTab === 'description'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-                onClick={() => setActiveTab('description')}
-              >
-                Description
-              </button>
-              <button
-                className={`px-6 py-3 font-medium text-sm ${
-                  activeTab === 'seller'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-                onClick={() => setActiveTab('seller')}
-              >
-                Seller Information
-              </button>
-              <button
-                className={`px-6 py-3 font-medium text-sm ${
-                  activeTab === 'reviews'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-                onClick={() => setActiveTab('reviews')}
-              >
-                Reviews {reviews.length > 0 && `(${reviews.length})`}
-              </button>
-            </div>
-
-            <div className="p-6">
-              {activeTab === 'description' && (
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">Product Description</h2>
-                  <div className="prose prose-blue max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
+                  {product.deliveryOptions.map((delivery, index) => (
+                    <option key={index} value={delivery.method}>
+                      {delivery.method} (${delivery.price.toFixed(2)}) - 
+                      {delivery.estimatedDays.min === delivery.estimatedDays.max
+                        ? `${delivery.estimatedDays.min} days`
+                        : `${delivery.estimatedDays.min}-${delivery.estimatedDays.max} days`}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            )}
+            
+            {/* Measurements Selection */}
+            {isAuthenticated && measurements.length > 0 && (
+              <Form.Group className="mb-3">
+                <Form.Label>Your Measurements</Form.Label>
+                <Form.Select
+                  value={selectedMeasurement}
+                  onChange={(e) => setSelectedMeasurement(e.target.value)}
+                >
+                  {measurements.map((measurement) => (
+                    <option key={measurement._id} value={measurement._id}>
+                      {measurement.name}
+                    </option>
+                  ))}
+                </Form.Select>
+                <div className="mt-2">
+                  <Link to="/measurements" className="small">
+                    Manage your measurements
+                  </Link>
                 </div>
-              )}
-
-              {activeTab === 'seller' && (
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">About the Seller</h2>
-                  <div className="flex items-center mb-4">
-                    <h3 className="text-xl font-medium text-gray-900">{product.seller.businessName}</h3>
-                    {product.seller.rating && (
-                      <div className="ml-4">
-                        {renderStars(product.seller.rating.average)}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-gray-700 mb-4">{product.seller.businessDescription || 'No description provided.'}</p>
-                  <button
-                    onClick={() => navigate(`/seller/${product.seller._id}`)}
-                    className="px-4 py-2 text-sm font-medium rounded-md bg-white border border-blue-600 text-blue-600 hover:bg-blue-50"
-                  >
-                    View Seller Profile
-                  </button>
+              </Form.Group>
+            )}
+            
+            <div className="d-grid gap-2 mt-4">
+              <h4 className="text-end mb-3">Total: ${calculateTotalPrice().toFixed(2)}</h4>
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleAddToCart}
+                disabled={product.stockStatus === 'out_of_stock'}
+              >
+                <FaShoppingCart className="me-2" />
+                Add to Cart
+              </Button>
+            </div>
+          </Form>
+        </Col>
+      </Row>
+      
+      {/* Product Details Tabs */}
+      <div className="mt-5">
+        <Tabs
+          activeKey={activeTab}
+          onSelect={(k) => k && setActiveTab(k)}
+          className="mb-3"
+        >
+          <Tab eventKey="description" title="Description">
+            <Card>
+              <Card.Body>
+                <div className="product-description">
+                  <h3 className="h5 mb-3">Product Description</h3>
+                  <p>{product.description}</p>
                 </div>
-              )}
-
-              {activeTab === 'reviews' && (
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">
-                    Customer Reviews {product.rating && product.rating.average > 0 && (
-                      <span className="text-gray-600">{renderStars(product.rating.average)}</span>
-                    )}
-                  </h2>
-                  
-                  {reviews.length === 0 ? (
-                    <p className="text-gray-600">No reviews yet.</p>
-                  ) : (
-                    <div className="space-y-6">
-                      {reviews.map((review) => (
-                        <div key={review._id} className="border-b border-gray-200 pb-6">
-                          <div className="flex items-center mb-2">
-                            {renderStars(review.rating)}
-                            <span className="ml-2 font-medium">{review.buyerName}</span>
+              </Card.Body>
+            </Card>
+          </Tab>
+          <Tab eventKey="reviews" title={`Reviews (${reviews.length})`}>
+            <Card>
+              <Card.Body>
+                <h3 className="h5 mb-3">Customer Reviews</h3>
+                {reviews.length === 0 ? (
+                  <p className="text-muted">No reviews yet for this product.</p>
+                ) : (
+                  <div className="product-reviews">
+                    {reviews.map((review) => (
+                      <div key={review._id} className="review border-bottom pb-3 mb-3">
+                        <div className="d-flex justify-content-between mb-2">
+                          <div>
+                            <h4 className="h6 mb-1">{review.buyerName}</h4>
+                            <div>{renderStars(review.rating)}</div>
                           </div>
-                          <p className="text-gray-700 mb-2">{review.comment}</p>
-                          <p className="text-sm text-gray-500">
+                          <small className="text-muted">
                             {new Date(review.createdAt).toLocaleDateString()}
-                          </p>
+                          </small>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                        <p>{review.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card.Body>
+            </Card>
+          </Tab>
+        </Tabs>
+      </div>
+      
+      {/* More from this seller */}
+      {sellerProducts.length > 0 && (
+        <div className="mt-5">
+          <h3 className="mb-4">More from {product.seller.businessName}</h3>
+          <Row>
+            {sellerProducts.map((relatedProduct) => (
+              <Col key={relatedProduct._id} md={3} sm={6} className="mb-4">
+                <Card className="h-100">
+                  <Card.Img
+                    variant="top"
+                    src={`${API_URL}/uploads/${relatedProduct.mainPhoto}`}
+                    alt={relatedProduct.title}
+                  />
+                  <Card.Body className="d-flex flex-column">
+                    <Card.Title className="h6">{relatedProduct.title}</Card.Title>
+                    <div className="mt-2 mb-3">${relatedProduct.price.toFixed(2)}</div>
+                    <Link 
+                      to={`/seller/${sellerId}/product/${relatedProduct._id}`}
+                      className="btn btn-outline-primary mt-auto"
+                    >
+                      View Details
+                    </Link>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+          <div className="text-center mt-3">
+            <Link to={`/seller/${sellerId}`} className="btn btn-link">
+              View All Products from {product.seller.businessName}
+            </Link>
           </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Container>
   );
 };
 
