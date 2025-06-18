@@ -19,7 +19,7 @@ import InventoryManager from './pages/seller/InventoryManager';
 import OrderManager from './pages/seller/OrderManager';
 import Analytics from './pages/seller/Analytics';
 import ProductCategories from './pages/seller/ProductCategories';
-import SalesReport from './pages/seller/SalesReport';
+
 
 // Buyer pages
 import SellerList from './pages/buyer/SellerList';
@@ -133,7 +133,7 @@ function App() {
             {/* Other seller routes */}
             <Route path="/seller/inventory" element={<InventoryManager />} />
             <Route path="/seller/analytics" element={<Analytics />} />
-            <Route path="/seller/sales" element={<SalesReport />} />
+            
             <Route path="/seller/profile" element={<ProfilePage />} />
             <Route path="/seller/settings" element={<SettingsPage />} />
           </Route>
